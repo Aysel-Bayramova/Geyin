@@ -1,0 +1,9 @@
+{
+  "name": "Geyin — Ağıllı Hava və Qarderob Köməkçisi",
+  "short_name": "Geyin",
+  "description": "GPS və şəhər seçimi ilə canlı havaya uyğun ağıllı qarderob kombinləri.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b"
+}

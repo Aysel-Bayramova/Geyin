@@ -174,7 +174,7 @@ function interpretWeather(code, temp, windSpeed, hourlyForecast = null) {
 
   return {
     conditionText,
-    isRainy: isRainy || isSnowy || (hourlyForecast?.rainProb >= 65),
+    isRainy: isRainy || isSnowy || hourlyForecast?.rainProb >= 65,
     isWindy,
     idealWarmth,
     needOuterwear: temp <= 17 || isRainy || isSnowy || isWindy || eveningCoolDrop,
@@ -187,7 +187,13 @@ function interpretWeather(code, temp, windSpeed, hourlyForecast = null) {
 
 function buildOutfitExplanation(outfit, weatherInfo) {
   if (!outfit || !weatherInfo) return '';
-  const selected = [outfit.top, outfit.bottom, outfit.outerwear, outfit.shoes, outfit.accessory].filter(Boolean);
+  const selected = [
+    outfit.top,
+    outfit.bottom,
+    outfit.outerwear,
+    outfit.shoes,
+    outfit.accessory,
+  ].filter(Boolean);
   if (selected.length === 0) return '';
 
   const reasons = [];
@@ -281,6 +287,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [isRegister, setIsRegister] = useState(false);
 
+  // Theme state: 'auto' | 'light' | 'dark'
+  const [themeMode, setThemeMode] = useState('auto');
+  const [systemPrefersDark, setSystemPrefersDark] = useState(false);
+
   // Auth state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -296,6 +306,7 @@ export default function HomePage() {
 
   // Form state for new item
   const [imageFile, setImageFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [subCategory, setSubCategory] = useState('');
   const [color, setColor] = useState('');
@@ -312,8 +323,51 @@ export default function HomePage() {
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [outfitStyleFilter, setOutfitStyleFilter] = useState('all');
   const [recommendedOutfit, setRecommendedOutfit] = useState(null);
+  const [outfitAnimKey, setOutfitAnimKey] = useState(0);
   const [lockedSlots, setLockedSlots] = useState({});
   const [savedOutfits, setSavedOutfits] = useState([]);
+
+  // Detect OS / phone color scheme & saved theme preference
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const savedTheme = localStorage.getItem('geyin_theme_mode');
+      if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'auto') {
+        setThemeMode(savedTheme);
+      }
+    } catch {
+      // ignore
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setSystemPrefersDark(mediaQuery.matches);
+
+    const handleChange = (e) => setSystemPrefersDark(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const handleSelectTheme = (mode) => {
+    setThemeMode(mode);
+    try {
+      localStorage.setItem('geyin_theme_mode', mode);
+    } catch {
+      // ignore
+    }
+  };
+
+  const isDark = themeMode === 'dark' || (themeMode === 'auto' && systemPrefersDark);
+
+  // Image file preview cleanup
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl('');
+      return;
+    }
+    const url = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageFile]);
 
   const activeWeather = useMemo(() => {
     if (demoPresetId === 'live') return liveWeather;
@@ -348,7 +402,8 @@ export default function HomePage() {
     if (missingCategories.length > 0) {
       suggestion = `Tam kombinlər üçün çatışmayan kateqoriya: ${missingCategories.join(', ')}.`;
     } else if (!hasWaterproof) {
-      suggestion = 'Yağışlı günlər üçün qarderobuna ən azı 1 suya davamlı üst örtük və ya ayaqqabı əlavə etməyin tövsiyə olunur.';
+      suggestion =
+        'Yağışlı günlər üçün qarderobuna ən azı 1 suya davamlı üst örtük və ya ayaqqabı əlavə etməyin tövsiyə olunur.';
     }
 
     return {
@@ -481,10 +536,19 @@ export default function HomePage() {
       setRecommendedOutfit((prev) =>
         buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev)
       );
+      setOutfitAnimKey((k) => k + 1);
     } else {
       setRecommendedOutfit(null);
     }
   }, [activeWeather, items, outfitStyleFilter]);
+
+  const handleRegenerateOutfit = () => {
+    if (!activeWeather || items.length === 0) return;
+    setRecommendedOutfit((prev) =>
+      buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev)
+    );
+    setOutfitAnimKey((k) => k + 1);
+  };
 
   const toggleLockSlot = (slotKey) => {
     setLockedSlots((prev) => ({
@@ -515,6 +579,7 @@ export default function HomePage() {
       excludeMap
     );
     setRecommendedOutfit(updated);
+    setOutfitAnimKey((k) => k + 1);
   };
 
   const handleSaveCurrentOutfit = () => {
@@ -535,6 +600,15 @@ export default function HomePage() {
       city: activeWeather.locationName,
       temp: activeWeather.temp,
       condition: activeWeather.conditionText,
+      explanation: recommendedOutfit.explanation || '',
+      outfitData: {
+        top: recommendedOutfit.top,
+        bottom: recommendedOutfit.bottom,
+        outerwear: recommendedOutfit.outerwear,
+        shoes: recommendedOutfit.shoes,
+        accessory: recommendedOutfit.accessory,
+        explanation: recommendedOutfit.explanation || '',
+      },
       pieces,
     };
 
@@ -546,6 +620,13 @@ export default function HomePage() {
       // ignore
     }
     setMessage('Kombin "Sevimli kombinlərim" bölməsinə əlavə olundu!');
+  };
+
+  const handleLoadSavedOutfit = (saved) => {
+    if (!saved?.outfitData) return;
+    setRecommendedOutfit(saved.outfitData);
+    setOutfitAnimKey((k) => k + 1);
+    setMessage('Sevimli kombin əsas sahəyə yükləndi.');
   };
 
   const handleDeleteSavedOutfit = (savedId) => {
@@ -700,42 +781,97 @@ export default function HomePage() {
     }
   };
 
+  // Dynamic theme tokens
+  const t = {
+    page: isDark ? 'bg-zinc-950 text-white' : 'bg-stone-100 text-zinc-900',
+    card: isDark
+      ? 'bg-zinc-900 border-zinc-800'
+      : 'bg-white border-stone-200 shadow-sm',
+    hero: isDark
+      ? 'bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800/80 border-zinc-800'
+      : 'bg-gradient-to-br from-white via-stone-50 to-amber-50/60 border-stone-200 shadow-sm',
+    surface: isDark
+      ? 'bg-zinc-950 border-zinc-800'
+      : 'bg-stone-50 border-stone-200',
+    muted: isDark ? 'text-zinc-400' : 'text-zinc-600',
+    subtext: isDark ? 'text-zinc-300' : 'text-zinc-700',
+    border: isDark ? 'border-zinc-800' : 'border-stone-200',
+    pillIdle: isDark
+      ? 'bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800'
+      : 'bg-white text-zinc-600 hover:text-zinc-900 border-stone-200',
+    pillActive: isDark
+      ? 'bg-white text-zinc-950'
+      : 'bg-zinc-900 text-white',
+  };
+
+  const renderThemeSwitcher = () => (
+    <div
+      className={`inline-flex items-center rounded-xl p-1 border text-xs ${
+        isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-stone-200/70 border-stone-300'
+      }`}
+    >
+      {[
+        { id: 'auto', label: 'Avto' },
+        { id: 'light', label: 'Açıq' },
+        { id: 'dark', label: 'Qaranlıq' },
+      ].map((m) => (
+        <button
+          key={m.id}
+          type="button"
+          onClick={() => handleSelectTheme(m.id)}
+          className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer active:scale-95 ${
+            themeMode === m.id
+              ? isDark
+                ? 'bg-white text-zinc-950 shadow-xs'
+                : 'bg-white text-zinc-900 shadow-xs'
+              : t.muted
+          }`}
+        >
+          {m.label}
+        </button>
+      ))}
+    </div>
+  );
+
   if (loading) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
-        <p className="text-zinc-400">Yüklənir...</p>
+      <main className={`min-h-screen ${t.page} flex items-center justify-center transition-colors duration-300`}>
+        <p className={`${t.muted} animate-pulse`}>Yüklənir...</p>
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-2xl bg-zinc-900 border border-zinc-800 p-6 space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Geyin</h1>
-            <p className="text-sm text-zinc-400 mt-1">
-              {isRegister
-                ? 'Yeni hesab yarat və qarderobunu qur.'
-                : 'Hava şəraitinə uyğun kombinlər üçün hesabına daxil ol.'}
-            </p>
+      <main className={`min-h-screen ${t.page} flex items-center justify-center p-6 transition-colors duration-300`}>
+        <div className={`w-full max-w-md rounded-2xl ${t.card} border p-6 space-y-6 animate-outfit-in`}>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Geyin</h1>
+              <p className={`text-sm ${t.muted} mt-1`}>
+                {isRegister
+                  ? 'Yeni hesab yarat və qarderobunu qur.'
+                  : 'Hava şəraitinə uyğun kombinlər üçün hesabına daxil ol.'}
+              </p>
+            </div>
+            {renderThemeSwitcher()}
           </div>
 
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
-              <label className="block text-sm text-zinc-300 mb-1.5">E-poçt</label>
+              <label className={`block text-sm ${t.subtext} mb-1.5`}>E-poçt</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nümunə@mail.com"
-                className="w-full rounded-xl bg-zinc-950 border border-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-zinc-500"
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               />
             </div>
 
             <div>
-              <label className="block text-sm text-zinc-300 mb-1.5">Şifrə</label>
+              <label className={`block text-sm ${t.subtext} mb-1.5`}>Şifrə</label>
               <input
                 type="password"
                 required
@@ -743,18 +879,18 @@ export default function HomePage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Ən az 6 simvol"
-                className="w-full rounded-xl bg-zinc-950 border border-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-zinc-500"
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               />
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-400">
+              <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-500">
                 {error}
               </div>
             )}
 
             {message && (
-              <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-400">
+              <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-500">
                 {message}
               </div>
             )}
@@ -762,7 +898,7 @@ export default function HomePage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 disabled:opacity-50 font-semibold py-2.5 text-sm transition cursor-pointer"
+              className={`w-full rounded-xl ${t.pillActive} disabled:opacity-50 font-semibold py-2.5 text-sm transition cursor-pointer active:scale-[0.98]`}
             >
               {submitting
                 ? 'Gözləyin...'
@@ -772,7 +908,7 @@ export default function HomePage() {
             </button>
           </form>
 
-          <div className="pt-2 border-t border-zinc-800 text-center">
+          <div className={`pt-2 border-t ${t.border} text-center`}>
             <button
               type="button"
               onClick={() => {
@@ -780,7 +916,7 @@ export default function HomePage() {
                 setError('');
                 setMessage('');
               }}
-              className="text-xs text-zinc-400 hover:text-white transition cursor-pointer"
+              className={`text-xs ${t.muted} transition cursor-pointer`}
             >
               {isRegister
                 ? 'Artıq hesabın var? Daxil ol'
@@ -812,39 +948,42 @@ export default function HomePage() {
     : [];
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white p-4 md:p-8">
+    <main className={`min-h-screen ${t.page} p-4 md:p-8 transition-colors duration-300`}>
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Top bar */}
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+        <header className={`flex flex-wrap items-center justify-between gap-4 border-b ${t.border} pb-5`}>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Geyin</h1>
-            <p className="text-xs text-zinc-400 mt-1">{user.email}</p>
+            <p className={`text-xs ${t.muted} mt-1`}>{user.email}</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-4 py-2 text-xs font-medium text-zinc-200 transition cursor-pointer"
-          >
-            Çıxış et
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            {renderThemeSwitcher()}
+            <button
+              onClick={handleLogout}
+              className={`rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
+            >
+              Çıxış et
+            </button>
+          </div>
         </header>
 
         {error && (
-          <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3.5 text-sm text-red-400">
+          <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3.5 text-sm text-red-500 animate-outfit-in">
             {error}
           </div>
         )}
 
         {message && (
-          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 text-sm text-emerald-400">
+          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 text-sm text-emerald-500 animate-outfit-in">
             {message}
           </div>
         )}
 
         {/* Weather & Smart Outfit Section */}
-        <section className="rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800/70 border border-zinc-800 p-6 space-y-6">
+        <section className={`rounded-2xl ${t.hero} border p-6 space-y-6 transition-all duration-300`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <span className="text-[11px] uppercase tracking-wider text-zinc-400">
+              <span className={`text-[11px] uppercase tracking-wider ${t.muted}`}>
                 Canlı Hava & Ağıllı Kombin • {locationSource}
               </span>
               <h2 className="text-xl font-bold mt-1">
@@ -855,8 +994,9 @@ export default function HomePage() {
                   : 'Məkan seçin'}
               </h2>
               {activeWeather && (
-                <p className="text-xs text-zinc-400 mt-1">
-                  Hiss olunan: {activeWeather.apparent}°C • Günlük: {activeWeather.minTemp}°C / {activeWeather.maxTemp}°C • Külək: {Math.round(activeWeather.wind)} km/saat
+                <p className={`text-xs ${t.muted} mt-1`}>
+                  Hiss olunan: {activeWeather.apparent}°C • Günlük: {activeWeather.minTemp}°C /{' '}
+                  {activeWeather.maxTemp}°C • Külək: {Math.round(activeWeather.wind)} km/saat
                 </p>
               )}
             </div>
@@ -865,7 +1005,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={detectGpsLocation}
-                className="rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 px-3.5 py-2 text-xs font-semibold transition cursor-pointer"
+                className={`rounded-xl ${t.pillActive} px-3.5 py-2 text-xs font-semibold transition cursor-pointer active:scale-95`}
               >
                 GPS ilə tap
               </button>
@@ -873,7 +1013,7 @@ export default function HomePage() {
               <select
                 value={selectedCity}
                 onChange={(e) => handleCitySelect(e.target.value)}
-                className="rounded-xl bg-zinc-950 border border-zinc-700 px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-500"
+                className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
               >
                 {AZERBAIJAN_CITIES.map((city) => (
                   <option key={city.name} value={city.name}>
@@ -886,16 +1026,16 @@ export default function HomePage() {
 
           {/* Demo Day Weather Simulator bar */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-[11px] text-zinc-400 mr-1">Hava rejimi (Demo test):</span>
+            <span className={`text-[11px] ${t.muted} mr-1`}>Hava rejimi (Demo test):</span>
             {DEMO_PRESETS.map((preset) => (
               <button
                 key={preset.id}
                 type="button"
                 onClick={() => setDemoPresetId(preset.id)}
-                className={`rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer ${
+                className={`rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer active:scale-95 ${
                   demoPresetId === preset.id
-                    ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                    : 'bg-zinc-950 text-zinc-400 hover:text-white border border-zinc-800'
+                    ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40'
+                    : `${t.pillIdle} border`
                 }`}
               >
                 {preset.label}
@@ -906,17 +1046,15 @@ export default function HomePage() {
           {/* General advice & Evening alert */}
           {activeWeather && (
             <div className="space-y-2.5">
-              <div className="rounded-xl bg-zinc-950/80 border border-zinc-800 p-4">
-                <p className="text-xs font-semibold text-zinc-300 mb-1">
+              <div className={`rounded-xl ${t.surface} border p-4`}>
+                <p className={`text-xs font-semibold ${t.subtext} mb-1`}>
                   Ümumi geyim məsləhəti:
                 </p>
-                <p className="text-sm text-zinc-200 leading-relaxed">
-                  {activeWeather.generalAdvice}
-                </p>
+                <p className="text-sm leading-relaxed">{activeWeather.generalAdvice}</p>
               </div>
 
               {activeWeather.eveningAlert && (
-                <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-xs text-amber-300">
+                <div className="rounded-xl bg-amber-500/15 border border-amber-500/35 px-4 py-3 text-xs text-amber-400">
                   {activeWeather.eveningAlert}
                 </div>
               )}
@@ -924,18 +1062,16 @@ export default function HomePage() {
           )}
 
           {/* Smart Wardrobe Outfit */}
-          <div className="space-y-4 pt-2 border-t border-zinc-800/80">
+          <div className={`space-y-4 pt-2 border-t ${t.border}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-semibold">
-                  Qarderobundan bugünkü kombin
-                </h3>
+                <h3 className="text-base font-semibold">Qarderobundan bugünkü kombin</h3>
                 {recommendedOutfit?.explanation ? (
-                  <p className="text-xs text-emerald-400/90 mt-0.5">
+                  <p className="text-xs text-emerald-500 mt-0.5">
                     Niyə bu kombin: {recommendedOutfit.explanation}
                   </p>
                 ) : (
-                  <p className="text-xs text-zinc-400">
+                  <p className={`text-xs ${t.muted}`}>
                     Hava temperaturu və yağış/külək göstəricilərinə uyğun seçildi
                   </p>
                 )}
@@ -945,7 +1081,7 @@ export default function HomePage() {
                 <select
                   value={outfitStyleFilter}
                   onChange={(e) => setOutfitStyleFilter(e.target.value)}
-                  className="rounded-xl bg-zinc-950 border border-zinc-700 px-3 py-2 text-xs text-white focus:outline-none"
+                  className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
                 >
                   <option value="all">Bütün stillər</option>
                   {STYLES.map((st) => (
@@ -958,12 +1094,8 @@ export default function HomePage() {
                 <button
                   type="button"
                   disabled={!activeWeather || items.length === 0}
-                  onClick={() =>
-                    setRecommendedOutfit((prev) =>
-                      buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev)
-                    )
-                  }
-                  className="rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 border border-zinc-700 px-3.5 py-2 text-xs font-medium text-white transition cursor-pointer"
+                  onClick={handleRegenerateOutfit}
+                  className={`rounded-xl ${t.card} disabled:opacity-40 border px-3.5 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
                 >
                   Başqa kombin yarat
                 </button>
@@ -972,7 +1104,7 @@ export default function HomePage() {
                   type="button"
                   disabled={!recommendedOutfit}
                   onClick={handleSaveCurrentOutfit}
-                  className="rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-40 border border-emerald-500/40 px-3.5 py-2 text-xs font-medium text-emerald-300 transition cursor-pointer"
+                  className="rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-40 border border-emerald-500/40 px-3.5 py-2 text-xs font-medium text-emerald-400 transition cursor-pointer active:scale-95"
                 >
                   Yadda saxla
                 </button>
@@ -980,32 +1112,35 @@ export default function HomePage() {
             </div>
 
             {items.length === 0 ? (
-              <div className="rounded-xl bg-zinc-950/60 border border-zinc-800 p-5 text-center text-xs text-zinc-400">
+              <div className={`rounded-xl ${t.surface} border p-5 text-center text-xs ${t.muted}`}>
                 Qarderobunda hələ paltar yoxdur. Aşağıdan üst geyim, alt geyim və ayaqqabı əlavə et ki, avtomatik kombin quraq!
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              <div
+                key={outfitAnimKey}
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 animate-outfit-in"
+              >
                 {outfitSlots.map((slot) => {
                   const isLocked = !!lockedSlots[slot.key];
                   return (
                     <div
                       key={slot.key}
-                      className={`rounded-xl bg-zinc-950 border overflow-hidden flex flex-col transition ${
-                        isLocked ? 'border-amber-400/70' : 'border-zinc-800'
+                      className={`rounded-xl ${t.surface} border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${
+                        isLocked ? 'border-amber-400/80 ring-1 ring-amber-400/30' : ''
                       }`}
                     >
-                      <div className="px-3 py-2 border-b border-zinc-800/80 flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-semibold text-zinc-300 truncate">
+                      <div className={`px-3 py-2 border-b ${t.border} flex items-center justify-between gap-1`}>
+                        <span className={`text-[11px] font-semibold ${t.subtext} truncate`}>
                           {slot.label}
                         </span>
                         {slot.item && (
                           <button
                             type="button"
                             onClick={() => toggleLockSlot(slot.key)}
-                            className={`text-[10px] px-1.5 py-0.5 rounded transition cursor-pointer ${
+                            className={`text-[10px] px-1.5 py-0.5 rounded transition cursor-pointer active:scale-95 ${
                               isLocked
-                                ? 'bg-amber-400/20 text-amber-300 font-semibold'
-                                : 'bg-zinc-900 text-zinc-400 hover:text-white'
+                                ? 'bg-amber-400/20 text-amber-400 font-semibold'
+                                : `${t.muted}`
                             }`}
                           >
                             {isLocked ? 'Kilidli' : 'Kilidlə'}
@@ -1019,13 +1154,13 @@ export default function HomePage() {
                             <img
                               src={slot.item.image_url}
                               alt={slot.item.sub_category || slot.label}
-                              className="w-full h-36 object-cover bg-zinc-900"
+                              className="w-full h-36 object-cover"
                             />
                             <div className="p-2.5 space-y-1">
-                              <p className="text-xs font-medium text-white truncate">
+                              <p className="text-xs font-medium truncate">
                                 {slot.item.sub_category || slot.item.category}
                               </p>
-                              <p className="text-[11px] text-zinc-400">
+                              <p className={`text-[11px] ${t.muted}`}>
                                 {slot.item.color ? `${slot.item.color} • ` : ''}
                                 İstilik {slot.item.warmth_level}/5
                               </p>
@@ -1037,7 +1172,7 @@ export default function HomePage() {
                               <button
                                 type="button"
                                 onClick={() => regenerateSingleSlot(slot.key)}
-                                className="w-full rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 py-1 text-[11px] text-zinc-300 transition cursor-pointer"
+                                className={`w-full rounded-lg ${t.card} border py-1 text-[11px] ${t.subtext} transition cursor-pointer active:scale-95`}
                               >
                                 Dəyiş
                               </button>
@@ -1045,7 +1180,7 @@ export default function HomePage() {
                           )}
                         </div>
                       ) : (
-                        <div className="flex-1 flex items-center justify-center p-4 text-center text-[11px] text-zinc-500 min-h-[160px]">
+                        <div className={`flex-1 flex items-center justify-center p-4 text-center text-[11px] ${t.muted} min-h-[160px]`}>
                           Qarderobda {slot.label.toLowerCase()} tapılmadı
                         </div>
                       )}
@@ -1059,50 +1194,57 @@ export default function HomePage() {
 
         {/* Wardrobe Insights Panel */}
         {wardrobeInsights && (
-          <section className="rounded-2xl bg-zinc-900/80 border border-zinc-800 p-5 flex flex-wrap items-center justify-between gap-4">
+          <section className={`rounded-2xl ${t.card} border p-5 flex flex-wrap items-center justify-between gap-4 animate-outfit-in`}>
             <div className="flex flex-wrap gap-6">
               <div>
-                <p className="text-[11px] text-zinc-400">Ümumi parça</p>
+                <p className={`text-[11px] ${t.muted}`}>Ümumi parça</p>
                 <p className="text-lg font-bold">{wardrobeInsights.total} ədəd</p>
               </div>
               <div>
-                <p className="text-[11px] text-zinc-400">Orta istilik</p>
+                <p className={`text-[11px] ${t.muted}`}>Orta istilik</p>
                 <p className="text-lg font-bold">{wardrobeInsights.avgWarmth} / 5</p>
               </div>
               <div>
-                <p className="text-[11px] text-zinc-400">Suya davamlı</p>
+                <p className={`text-[11px] ${t.muted}`}>Suya davamlı</p>
                 <p className="text-lg font-bold">{wardrobeInsights.waterproofCount} ədəd</p>
               </div>
             </div>
-            <p className="text-xs text-zinc-300 max-w-md">
-              {wardrobeInsights.suggestion}
-            </p>
+            <p className={`text-xs ${t.subtext} max-w-md`}>{wardrobeInsights.suggestion}</p>
           </section>
         )}
 
         {/* Saved Outfits */}
         {savedOutfits.length > 0 && (
-          <section className="rounded-2xl bg-zinc-900 border border-zinc-800 p-6 space-y-4">
-            <h2 className="text-lg font-semibold">
-              Sevimli kombinlərim ({savedOutfits.length})
-            </h2>
+          <section className={`rounded-2xl ${t.card} border p-6 space-y-4 animate-outfit-in`}>
+            <h2 className="text-lg font-semibold">Sevimli kombinlərim ({savedOutfits.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedOutfits.map((saved) => (
                 <div
                   key={saved.id}
-                  className="rounded-xl bg-zinc-950 border border-zinc-800 p-4 space-y-3"
+                  className={`rounded-xl ${t.surface} border p-4 space-y-3 transition hover:-translate-y-0.5`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-zinc-300 font-medium">
+                    <p className={`text-xs ${t.subtext} font-medium`}>
                       {saved.city} • {saved.temp}°C ({saved.condition}) — {saved.createdAt}
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteSavedOutfit(saved.id)}
-                      className="text-xs text-zinc-500 hover:text-red-400 transition cursor-pointer"
-                    >
-                      Sil
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {saved.outfitData && (
+                        <button
+                          type="button"
+                          onClick={() => handleLoadSavedOutfit(saved)}
+                          className="text-xs text-sky-400 hover:underline font-medium transition cursor-pointer"
+                        >
+                          Yüklə
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSavedOutfit(saved.id)}
+                        className={`text-xs ${t.muted} hover:text-red-400 transition cursor-pointer`}
+                      >
+                        Sil
+                      </button>
+                    </div>
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {saved.pieces.map((p, idx) => (
@@ -1110,7 +1252,7 @@ export default function HomePage() {
                         key={`${saved.id}-${idx}`}
                         src={p.image_url}
                         alt={p.sub_category || p.category}
-                        className="w-16 h-20 rounded-lg object-cover border border-zinc-800 shrink-0"
+                        className={`w-16 h-20 rounded-lg object-cover border ${t.border} shrink-0`}
                       />
                     ))}
                   </div>
@@ -1121,27 +1263,37 @@ export default function HomePage() {
         )}
 
         {/* Add item form */}
-        <section className="rounded-2xl bg-zinc-900 border border-zinc-800 p-6">
+        <section className={`rounded-2xl ${t.card} border p-6`}>
           <h2 className="text-lg font-semibold mb-4">Yeni paltar əlavə et</h2>
           <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-xs text-zinc-400 mb-1.5">Paltar şəkli *</label>
+            <div className="md:col-span-2 space-y-2.5">
+              <label className={`block text-xs ${t.muted}`}>Paltar şəkli *</label>
               <input
                 id="clothes-file-input"
                 type="file"
                 accept="image/*"
                 required
                 onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                className="w-full rounded-xl bg-zinc-950 border border-zinc-800 px-3.5 py-2 text-sm text-zinc-300 file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-800 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-zinc-700"
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2 text-sm`}
               />
+              {imagePreviewUrl && (
+                <div className="flex items-center gap-3 pt-1 animate-outfit-in">
+                  <img
+                    src={imagePreviewUrl}
+                    alt="Önizləmə"
+                    className={`w-16 h-20 rounded-xl object-cover border ${t.border}`}
+                  />
+                  <span className={`text-xs ${t.muted}`}>Seçilmiş şəkil hazırdır</span>
+                </div>
+              )}
             </div>
 
             <div>
-              <label className="block text-xs text-zinc-400 mb-1.5">Kateqoriya *</label>
+              <label className={`block text-xs ${t.muted} mb-1.5`}>Kateqoriya *</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-xl bg-zinc-950 border border-zinc-800 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-500"
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
@@ -1152,33 +1304,35 @@ export default function HomePage() {
             </div>
 
             <div>
-              <label className="block text-xs text-zinc-400 mb-1.5">Alt kateqoriya (məs: Hudi, Cins)</label>
+              <label className={`block text-xs ${t.muted} mb-1.5`}>
+                Alt kateqoriya (məs: Hudi, Cins)
+              </label>
               <input
                 type="text"
                 value={subCategory}
                 onChange={(e) => setSubCategory(e.target.value)}
                 placeholder="Məsələn: Oversize hudi"
-                className="w-full rounded-xl bg-zinc-950 border border-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500"
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               />
             </div>
 
             <div>
-              <label className="block text-xs text-zinc-400 mb-1.5">Rəng</label>
+              <label className={`block text-xs ${t.muted} mb-1.5`}>Rəng</label>
               <input
                 type="text"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 placeholder="Məsələn: Qara, Bej, Göy"
-                className="w-full rounded-xl bg-zinc-950 border border-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500"
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               />
             </div>
 
             <div>
-              <label className="block text-xs text-zinc-400 mb-1.5">Stil</label>
+              <label className={`block text-xs ${t.muted} mb-1.5`}>Stil</label>
               <select
                 value={style}
                 onChange={(e) => setStyle(e.target.value)}
-                className="w-full rounded-xl bg-zinc-950 border border-zinc-800 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-500"
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               >
                 {STYLES.map((st) => (
                   <option key={st.value} value={st.value}>
@@ -1189,9 +1343,9 @@ export default function HomePage() {
             </div>
 
             <div className="md:col-span-2">
-              <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
+              <div className={`flex items-center justify-between text-xs ${t.muted} mb-1.5`}>
                 <span>İstilik səviyyəsi (1 = çox nazik, 5 = çox qalın)</span>
-                <span className="font-semibold text-white">{warmthLevel} / 5</span>
+                <span className="font-semibold">{warmthLevel} / 5</span>
               </div>
               <input
                 type="range"
@@ -1199,27 +1353,27 @@ export default function HomePage() {
                 max={5}
                 value={warmthLevel}
                 onChange={(e) => setWarmthLevel(e.target.value)}
-                className="w-full accent-white cursor-pointer"
+                className="w-full cursor-pointer"
               />
             </div>
 
             <div className="md:col-span-2 flex flex-wrap gap-6 pt-1">
-              <label className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
+              <label className={`flex items-center gap-2 text-sm ${t.subtext} cursor-pointer`}>
                 <input
                   type="checkbox"
                   checked={waterproof}
                   onChange={(e) => setWaterproof(e.target.checked)}
-                  className="rounded accent-white"
+                  className="rounded"
                 />
                 Suya davamlı (yağış üçün)
               </label>
 
-              <label className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
+              <label className={`flex items-center gap-2 text-sm ${t.subtext} cursor-pointer`}>
                 <input
                   type="checkbox"
                   checked={windproof}
                   onChange={(e) => setWindproof(e.target.checked)}
-                  className="rounded accent-white"
+                  className="rounded"
                 />
                 Küləyə davamlı
               </label>
@@ -1229,7 +1383,7 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={uploading}
-                className="w-full md:w-auto rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 disabled:opacity-50 font-semibold px-6 py-2.5 text-sm transition cursor-pointer"
+                className={`w-full md:w-auto rounded-xl ${t.pillActive} disabled:opacity-50 font-semibold px-6 py-2.5 text-sm transition cursor-pointer active:scale-[0.98]`}
               >
                 {uploading ? 'Yüklənir...' : 'Qarderoba əlavə et'}
               </button>
@@ -1240,18 +1394,14 @@ export default function HomePage() {
         {/* Wardrobe list */}
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">
-              Əşyalarım ({filteredItems.length})
-            </h2>
+            <h2 className="text-lg font-semibold">Əşyalarım ({filteredItems.length})</h2>
             <div className="flex flex-wrap gap-2">
               {['Hamısı', ...CATEGORIES].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategoryFilter(cat)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer ${
-                    selectedCategoryFilter === cat
-                      ? 'bg-white text-zinc-950'
-                      : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${
+                    selectedCategoryFilter === cat ? t.pillActive : `${t.pillIdle} border`
                   }`}
                 >
                   {cat}
@@ -1261,9 +1411,9 @@ export default function HomePage() {
           </div>
 
           {loadingItems ? (
-            <p className="text-sm text-zinc-400">Qarderob yüklənir...</p>
+            <p className={`text-sm ${t.muted}`}>Qarderob yüklənir...</p>
           ) : filteredItems.length === 0 ? (
-            <div className="rounded-2xl bg-zinc-900/60 border border-zinc-800/80 p-8 text-center text-sm text-zinc-400">
+            <div className={`rounded-2xl ${t.card} border p-8 text-center text-sm ${t.muted}`}>
               Bu kateqoriyada hələ paltar yoxdur. Yuxarıdakı formadan ilk paltarını əlavə et!
             </div>
           ) : (
@@ -1271,35 +1421,35 @@ export default function HomePage() {
               {filteredItems.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-2xl bg-zinc-900 border border-zinc-800 overflow-hidden flex flex-col justify-between"
+                  className={`rounded-2xl ${t.card} border overflow-hidden flex flex-col justify-between transition-all duration-200 hover:-translate-y-1`}
                 >
                   <div>
                     <img
                       src={item.image_url}
                       alt={item.sub_category || item.category}
-                      className="w-full h-44 object-cover bg-zinc-950"
+                      className="w-full h-44 object-cover"
                     />
                     <div className="p-3.5 space-y-1.5">
-                      <p className="text-xs font-semibold text-white">{item.category}</p>
+                      <p className="text-xs font-semibold">{item.category}</p>
                       {item.sub_category && (
-                        <p className="text-xs text-zinc-300">{item.sub_category}</p>
+                        <p className={`text-xs ${t.subtext}`}>{item.sub_category}</p>
                       )}
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         {item.color && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300">
+                          <span className={`text-[11px] px-2 py-0.5 rounded-md ${t.surface} border ${t.subtext}`}>
                             {item.color}
                           </span>
                         )}
-                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300">
+                        <span className={`text-[11px] px-2 py-0.5 rounded-md ${t.surface} border ${t.subtext}`}>
                           İstilik: {item.warmth_level}/5
                         </span>
                         {item.waterproof && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-300">
+                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400">
                             Suya davamlı
                           </span>
                         )}
                         {item.windproof && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-300">
+                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-400">
                             Küləyə davamlı
                           </span>
                         )}
@@ -1309,7 +1459,7 @@ export default function HomePage() {
                   <div className="px-3.5 pb-3">
                     <button
                       onClick={() => handleDeleteItem(item)}
-                      className="w-full rounded-lg bg-zinc-950 hover:bg-red-500/15 border border-zinc-800 hover:border-red-500/30 py-1.5 text-xs text-zinc-400 hover:text-red-400 transition cursor-pointer"
+                      className={`w-full rounded-lg ${t.surface} hover:bg-red-500/15 border hover:border-red-500/30 py-1.5 text-xs ${t.muted} hover:text-red-400 transition cursor-pointer active:scale-95`}
                     >
                       Sil
                     </button>
