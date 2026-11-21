@@ -79,6 +79,44 @@ const AZERBAIJAN_CITIES = [
   { name: 'Şərur', lat: 39.5529, lon: 44.9799 },
 ];
 
+const NEUTRAL_KEYWORDS = [
+  'qara',
+  'ağ',
+  'ag',
+  'bej',
+  'boz',
+  'krem',
+  'qəhvəyi',
+  'qehveyi',
+  'tünd göy',
+  'göy',
+  'goy',
+  'cins',
+  'xaki',
+  'black',
+  'white',
+  'beige',
+  'gray',
+  'grey',
+  'navy',
+  'brown',
+];
+
+function isNeutralColor(colorStr) {
+  if (!colorStr) return true;
+  const lower = colorStr.toLowerCase().trim();
+  return NEUTRAL_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
+function getColorHarmonyBonus(colorA, colorB) {
+  if (!colorA || !colorB) return 10;
+  const a = colorA.toLowerCase().trim();
+  const b = colorB.toLowerCase().trim();
+  if (isNeutralColor(a) || isNeutralColor(b)) return 22;
+  if (a === b) return 16;
+  return 4;
+}
+
 function findNearestCity(lat, lon) {
   let nearest = AZERBAIJAN_CITIES[0];
   let minDist = Infinity;
@@ -142,30 +180,72 @@ function interpretWeather(code, temp, windSpeed) {
   };
 }
 
-function buildSmartOutfit(items, weatherInfo, preferredStyle = 'all') {
+function buildOutfitExplanation(outfit, weatherInfo) {
+  if (!outfit || !weatherInfo) return '';
+  const selected = [outfit.top, outfit.bottom, outfit.outerwear, outfit.shoes, outfit.accessory].filter(Boolean);
+  if (selected.length === 0) return '';
+
+  const reasons = [];
+  reasons.push(`${weatherInfo.temp}°C hava üçün ideal istilik (${weatherInfo.idealWarmth}/5) hədəfləndi`);
+
+  const hasWaterproof = selected.some((i) => i.waterproof);
+  const hasWindproof = selected.some((i) => i.windproof);
+
+  if (weatherInfo.isRainy && hasWaterproof) {
+    reasons.push('yağışa qarşı suya davamlı parça seçildi');
+  }
+  if (weatherInfo.isWindy && hasWindproof) {
+    reasons.push('küləyə davamlı qoruma əlavə edildi');
+  }
+
+  const colors = selected.map((i) => i.color).filter(Boolean);
+  if (colors.length >= 2) {
+    reasons.push(`${colors.slice(0, 3).join(' + ')} rəng harmoniyası uyğunlaşdırıldı`);
+  }
+
+  return reasons.join(', ') + '.';
+}
+
+function buildSmartOutfit(
+  items,
+  weatherInfo,
+  preferredStyle = 'all',
+  lockedSlots = {},
+  currentOutfit = null,
+  excludeIdsBySlot = {}
+) {
   if (!items || items.length === 0 || !weatherInfo) return null;
 
-  const pickBestForCategory = (catName) => {
-    const candidates = items.filter((item) => item.category === catName);
+  const pickBestForCategory = (slotKey, catName, anchorColor = null) => {
+    if (lockedSlots[slotKey] && currentOutfit?.[slotKey]) {
+      return currentOutfit[slotKey];
+    }
+
+    let candidates = items.filter((item) => item.category === catName);
     if (candidates.length === 0) return null;
+
+    const excludeId = excludeIdsBySlot[slotKey];
+    if (excludeId && candidates.length > 1) {
+      candidates = candidates.filter((c) => c.id !== excludeId);
+    }
 
     const scored = candidates.map((item) => {
       let score = 0;
 
-      // İstilik uyğunluğu (maks 50 bal)
       const diff = Math.abs((item.warmth_level || 3) - weatherInfo.idealWarmth);
       score += Math.max(0, 50 - diff * 15);
 
-      // Yağış və külək bonusu
       if (weatherInfo.isRainy && item.waterproof) score += 25;
       if (weatherInfo.isWindy && item.windproof) score += 20;
 
-      // Stil uyğunluğu
       if (preferredStyle !== 'all' && item.style === preferredStyle) {
         score += 20;
       }
 
-      // Alternativ kombinasiyalar üçün kiçik təsadüfi variasiya
+      if (anchorColor) {
+        score += getColorHarmonyBonus(anchorColor, item.color);
+      }
+
       score += Math.random() * 18;
 
       return { item, score };
@@ -175,15 +255,20 @@ function buildSmartOutfit(items, weatherInfo, preferredStyle = 'all') {
     return scored[0].item;
   };
 
-  return {
-    top: pickBestForCategory('Üst geyim'),
-    bottom: pickBestForCategory('Alt geyim'),
-    outerwear: weatherInfo.needOuterwear
-      ? pickBestForCategory('Üst örtük (Gödəkçə/Palto)')
-      : null,
-    shoes: pickBestForCategory('Ayaqqabı'),
-    accessory: pickBestForCategory('Aksesuar'),
-  };
+  const top = pickBestForCategory('top', 'Üst geyim');
+  const anchorColor = top?.color || null;
+
+  const bottom = pickBestForCategory('bottom', 'Alt geyim', anchorColor);
+  const outerwear =
+    weatherInfo.needOuterwear || (lockedSlots.outerwear && currentOutfit?.outerwear)
+      ? pickBestForCategory('outerwear', 'Üst örtük (Gödəkçə/Palto)', anchorColor)
+      : null;
+  const shoes = pickBestForCategory('shoes', 'Ayaqqabı', bottom?.color || anchorColor);
+  const accessory = pickBestForCategory('accessory', 'Aksesuar', anchorColor);
+
+  const nextOutfit = { top, bottom, outerwear, shoes, accessory };
+  nextOutfit.explanation = buildOutfitExplanation(nextOutfit, weatherInfo);
+  return nextOutfit;
 }
 
 export default function HomePage() {
@@ -221,6 +306,8 @@ export default function HomePage() {
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [outfitStyleFilter, setOutfitStyleFilter] = useState('all');
   const [recommendedOutfit, setRecommendedOutfit] = useState(null);
+  const [lockedSlots, setLockedSlots] = useState({});
+  const [savedOutfits, setSavedOutfits] = useState([]);
 
   const fetchWeatherByCoords = useCallback(async (lat, lon, label) => {
     setLoadingWeather(true);
@@ -297,6 +384,12 @@ export default function HomePage() {
       if (currentUser) {
         fetchItems(currentUser.id);
         detectGpsLocation();
+        try {
+          const raw = localStorage.getItem(`geyin_saved_${currentUser.id}`);
+          if (raw) setSavedOutfits(JSON.parse(raw));
+        } catch {
+          // ignore storage parse error
+        }
       }
     };
 
@@ -321,11 +414,86 @@ export default function HomePage() {
 
   useEffect(() => {
     if (weather && items.length > 0) {
-      setRecommendedOutfit(buildSmartOutfit(items, weather, outfitStyleFilter));
+      setRecommendedOutfit((prev) =>
+        buildSmartOutfit(items, weather, outfitStyleFilter, lockedSlots, prev)
+      );
     } else {
       setRecommendedOutfit(null);
     }
   }, [weather, items, outfitStyleFilter]);
+
+  const toggleLockSlot = (slotKey) => {
+    setLockedSlots((prev) => ({
+      ...prev,
+      [slotKey]: !prev[slotKey],
+    }));
+  };
+
+  const regenerateSingleSlot = (slotKey) => {
+    if (!weather || !recommendedOutfit) return;
+    const tempLocks = {
+      top: true,
+      bottom: true,
+      outerwear: true,
+      shoes: true,
+      accessory: true,
+      [slotKey]: false,
+    };
+    const excludeMap = recommendedOutfit[slotKey]?.id
+      ? { [slotKey]: recommendedOutfit[slotKey].id }
+      : {};
+    const updated = buildSmartOutfit(
+      items,
+      weather,
+      outfitStyleFilter,
+      tempLocks,
+      recommendedOutfit,
+      excludeMap
+    );
+    setRecommendedOutfit(updated);
+  };
+
+  const handleSaveCurrentOutfit = () => {
+    if (!user || !recommendedOutfit || !weather) return;
+    const pieces = [
+      recommendedOutfit.top,
+      recommendedOutfit.bottom,
+      recommendedOutfit.outerwear,
+      recommendedOutfit.shoes,
+      recommendedOutfit.accessory,
+    ].filter(Boolean);
+
+    if (pieces.length === 0) return;
+
+    const newSaved = {
+      id: Date.now(),
+      createdAt: new Date().toLocaleDateString('az-AZ'),
+      city: weather.locationName,
+      temp: weather.temp,
+      condition: weather.conditionText,
+      pieces,
+    };
+
+    const updatedList = [newSaved, ...savedOutfits].slice(0, 12);
+    setSavedOutfits(updatedList);
+    try {
+      localStorage.setItem(`geyin_saved_${user.id}`, JSON.stringify(updatedList));
+    } catch {
+      // ignore quota error
+    }
+    setMessage('Kombin "Sevimli kombinlərim" bölməsinə əlavə olundu!');
+  };
+
+  const handleDeleteSavedOutfit = (savedId) => {
+    if (!user) return;
+    const updatedList = savedOutfits.filter((o) => o.id !== savedId);
+    setSavedOutfits(updatedList);
+    try {
+      localStorage.setItem(`geyin_saved_${user.id}`, JSON.stringify(updatedList));
+    } catch {
+      // ignore
+    }
+  };
 
   const fetchItems = async (userId) => {
     setLoadingItems(true);
@@ -567,14 +735,14 @@ export default function HomePage() {
 
   const outfitSlots = recommendedOutfit
     ? [
-        { label: 'Üst geyim', item: recommendedOutfit.top },
-        { label: 'Alt geyim', item: recommendedOutfit.bottom },
-        ...(recommendedOutfit.outerwear
-          ? [{ label: 'Üst örtük', item: recommendedOutfit.outerwear }]
+        { key: 'top', label: 'Üst geyim', item: recommendedOutfit.top },
+        { key: 'bottom', label: 'Alt geyim', item: recommendedOutfit.bottom },
+        ...(recommendedOutfit.outerwear || lockedSlots.outerwear
+          ? [{ key: 'outerwear', label: 'Üst örtük', item: recommendedOutfit.outerwear }]
           : []),
-        { label: 'Ayaqqabı', item: recommendedOutfit.shoes },
-        ...(recommendedOutfit.accessory
-          ? [{ label: 'Aksesuar', item: recommendedOutfit.accessory }]
+        { key: 'shoes', label: 'Ayaqqabı', item: recommendedOutfit.shoes },
+        ...(recommendedOutfit.accessory || lockedSlots.accessory
+          ? [{ key: 'accessory', label: 'Aksesuar', item: recommendedOutfit.accessory }]
           : []),
       ]
     : [];
@@ -671,9 +839,15 @@ export default function HomePage() {
                 <h3 className="text-base font-semibold">
                   Qarderobundan bugünkü kombin
                 </h3>
-                <p className="text-xs text-zinc-400">
-                  Hava temperaturu və yağış/külək göstəricilərinə uyğun seçildi
-                </p>
+                {recommendedOutfit?.explanation ? (
+                  <p className="text-xs text-emerald-400/90 mt-0.5">
+                    Niyə bu kombin: {recommendedOutfit.explanation}
+                  </p>
+                ) : (
+                  <p className="text-xs text-zinc-400">
+                    Hava temperaturu və yağış/külək göstəricilərinə uyğun seçildi
+                  </p>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -694,11 +868,22 @@ export default function HomePage() {
                   type="button"
                   disabled={!weather || items.length === 0}
                   onClick={() =>
-                    setRecommendedOutfit(buildSmartOutfit(items, weather, outfitStyleFilter))
+                    setRecommendedOutfit((prev) =>
+                      buildSmartOutfit(items, weather, outfitStyleFilter, lockedSlots, prev)
+                    )
                   }
                   className="rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 border border-zinc-700 px-3.5 py-2 text-xs font-medium text-white transition cursor-pointer"
                 >
                   Başqa kombin yarat
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!recommendedOutfit}
+                  onClick={handleSaveCurrentOutfit}
+                  className="rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-40 border border-emerald-500/40 px-3.5 py-2 text-xs font-medium text-emerald-300 transition cursor-pointer"
+                >
+                  Yadda saxla
                 </button>
               </div>
             </div>
@@ -709,42 +894,117 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                {outfitSlots.map((slot) => (
-                  <div
-                    key={slot.label}
-                    className="rounded-xl bg-zinc-950 border border-zinc-800 overflow-hidden flex flex-col"
-                  >
-                    <div className="px-3 py-2 border-b border-zinc-800/80 text-[11px] font-semibold text-zinc-400">
-                      {slot.label}
-                    </div>
-                    {slot.item ? (
-                      <div className="flex-1 flex flex-col">
-                        <img
-                          src={slot.item.image_url}
-                          alt={slot.item.sub_category || slot.label}
-                          className="w-full h-36 object-cover bg-zinc-900"
-                        />
-                        <div className="p-2.5 space-y-1">
-                          <p className="text-xs font-medium text-white truncate">
-                            {slot.item.sub_category || slot.item.category}
-                          </p>
-                          <p className="text-[11px] text-zinc-400">
-                            {slot.item.color ? `${slot.item.color} • ` : ''}
-                            İstilik {slot.item.warmth_level}/5
-                          </p>
+                {outfitSlots.map((slot) => {
+                  const isLocked = !!lockedSlots[slot.key];
+                  return (
+                    <div
+                      key={slot.key}
+                      className={`rounded-xl bg-zinc-950 border overflow-hidden flex flex-col transition ${
+                        isLocked ? 'border-amber-400/70' : 'border-zinc-800'
+                      }`}
+                    >
+                      <div className="px-3 py-2 border-b border-zinc-800/80 flex items-center justify-between gap-1">
+                        <span className="text-[11px] font-semibold text-zinc-300 truncate">
+                          {slot.label}
+                        </span>
+                        {slot.item && (
+                          <button
+                            type="button"
+                            onClick={() => toggleLockSlot(slot.key)}
+                            className={`text-[10px] px-1.5 py-0.5 rounded transition cursor-pointer ${
+                              isLocked
+                                ? 'bg-amber-400/20 text-amber-300 font-semibold'
+                                : 'bg-zinc-900 text-zinc-400 hover:text-white'
+                            }`}
+                          >
+                            {isLocked ? 'Kilidli' : 'Kilidlə'}
+                          </button>
+                        )}
+                      </div>
+
+                      {slot.item ? (
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <img
+                              src={slot.item.image_url}
+                              alt={slot.item.sub_category || slot.label}
+                              className="w-full h-36 object-cover bg-zinc-900"
+                            />
+                            <div className="p-2.5 space-y-1">
+                              <p className="text-xs font-medium text-white truncate">
+                                {slot.item.sub_category || slot.item.category}
+                              </p>
+                              <p className="text-[11px] text-zinc-400">
+                                {slot.item.color ? `${slot.item.color} • ` : ''}
+                                İstilik {slot.item.warmth_level}/5
+                              </p>
+                            </div>
+                          </div>
+
+                          {!isLocked && (
+                            <div className="px-2.5 pb-2.5">
+                              <button
+                                type="button"
+                                onClick={() => regenerateSingleSlot(slot.key)}
+                                className="w-full rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 py-1 text-[11px] text-zinc-300 transition cursor-pointer"
+                              >
+                                Dəyiş
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex-1 flex items-center justify-center p-4 text-center text-[11px] text-zinc-500 min-h-[160px]">
-                        Qarderobda {slot.label.toLowerCase()} tapılmadı
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      ) : (
+                        <div className="flex-1 flex items-center justify-center p-4 text-center text-[11px] text-zinc-500 min-h-[160px]">
+                          Qarderobda {slot.label.toLowerCase()} tapılmadı
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         </section>
+
+        {/* Saved Outfits */}
+        {savedOutfits.length > 0 && (
+          <section className="rounded-2xl bg-zinc-900 border border-zinc-800 p-6 space-y-4">
+            <h2 className="text-lg font-semibold">
+              Sevimli kombinlərim ({savedOutfits.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {savedOutfits.map((saved) => (
+                <div
+                  key={saved.id}
+                  className="rounded-xl bg-zinc-950 border border-zinc-800 p-4 space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-zinc-300 font-medium">
+                      {saved.city} • {saved.temp}°C ({saved.condition}) — {saved.createdAt}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSavedOutfit(saved.id)}
+                      className="text-xs text-zinc-500 hover:text-red-400 transition cursor-pointer"
+                    >
+                      Sil
+                    </button>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {saved.pieces.map((p, idx) => (
+                      <img
+                        key={`${saved.id}-${idx}`}
+                        src={p.image_url}
+                        alt={p.sub_category || p.category}
+                        className="w-16 h-20 rounded-lg object-cover border border-zinc-800 shrink-0"
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Add item form */}
         <section className="rounded-2xl bg-zinc-900 border border-zinc-800 p-6">
