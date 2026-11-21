@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Üst geyim', 'Alt geyim', 'Üst örtük (Gödəkçə/Palto)', 'Ayaqqabı', 'Aksesuar'];
@@ -79,27 +79,17 @@ const AZERBAIJAN_CITIES = [
   { name: 'Şərur', lat: 39.5529, lon: 44.9799 },
 ];
 
+const DEMO_PRESETS = [
+  { id: 'live', label: 'Canlı Hava' },
+  { id: 'sunny', label: 'Günəşli 25°C', temp: 25, apparent: 26, wind: 10, code: 0, minTemp: 19, maxTemp: 26, rainProb: 5 },
+  { id: 'rainy', label: 'Yağışlı 10°C', temp: 10, apparent: 8, wind: 22, code: 63, minTemp: 7, maxTemp: 12, rainProb: 85 },
+  { id: 'snowy', label: 'Qarlı 0°C', temp: 0, apparent: -4, wind: 30, code: 73, minTemp: -3, maxTemp: 2, rainProb: 90 },
+];
+
 const NEUTRAL_KEYWORDS = [
-  'qara',
-  'ağ',
-  'ag',
-  'bej',
-  'boz',
-  'krem',
-  'qəhvəyi',
-  'qehveyi',
-  'tünd göy',
-  'göy',
-  'goy',
-  'cins',
-  'xaki',
-  'black',
-  'white',
-  'beige',
-  'gray',
-  'grey',
-  'navy',
-  'brown',
+  'qara', 'ağ', 'ag', 'bej', 'boz', 'krem', 'qəhvəyi', 'qehveyi',
+  'tünd göy', 'göy', 'goy', 'cins', 'xaki', 'black', 'white',
+  'beige', 'gray', 'grey', 'navy', 'brown',
 ];
 
 function isNeutralColor(colorStr) {
@@ -130,7 +120,7 @@ function findNearestCity(lat, lon) {
   return minDist < 1.5 ? nearest.name : `GPS Məkanı (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
 }
 
-function interpretWeather(code, temp, windSpeed) {
+function interpretWeather(code, temp, windSpeed, hourlyForecast = null) {
   const isRainy =
     [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(code);
   const isSnowy = [71, 73, 75, 77, 85, 86].includes(code);
@@ -170,13 +160,28 @@ function interpretWeather(code, temp, windSpeed) {
     tips.push(`Külək güclüdür (${Math.round(windSpeed)} km/saat): küləyə davamlı gödəkçə geyin.`);
   }
 
+  let eveningAlert = null;
+  let eveningCoolDrop = false;
+  if (hourlyForecast) {
+    const { minTemp, rainProb } = hourlyForecast;
+    if (temp - minTemp >= 6 && minTemp <= 14) {
+      eveningCoolDrop = true;
+      eveningAlert = `Axşam temperatur ${minTemp}°C-yə qədər düşəcək — çölə çıxanda üst örtük götürməyin məsləhətdir.`;
+    } else if (!isRainy && rainProb >= 55) {
+      eveningAlert = `Gün ərzində yağıntı ehtimalı ${rainProb}%-dir — suya davamlı parça seçmək faydalı olar.`;
+    }
+  }
+
   return {
     conditionText,
-    isRainy: isRainy || isSnowy,
+    isRainy: isRainy || isSnowy || (hourlyForecast?.rainProb >= 65),
     isWindy,
     idealWarmth,
-    needOuterwear: temp <= 17 || isRainy || isSnowy || isWindy,
+    needOuterwear: temp <= 17 || isRainy || isSnowy || isWindy || eveningCoolDrop,
     generalAdvice: tips.join(' '),
+    eveningAlert,
+    minTemp: hourlyForecast?.minTemp ?? temp,
+    maxTemp: hourlyForecast?.maxTemp ?? temp,
   };
 }
 
@@ -302,18 +307,63 @@ export default function HomePage() {
   // Weather & Outfit state
   const [selectedCity, setSelectedCity] = useState('Bakı');
   const [locationSource, setLocationSource] = useState('Avtomatik axtarılır...');
-  const [weather, setWeather] = useState(null);
+  const [liveWeather, setLiveWeather] = useState(null);
+  const [demoPresetId, setDemoPresetId] = useState('live');
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [outfitStyleFilter, setOutfitStyleFilter] = useState('all');
   const [recommendedOutfit, setRecommendedOutfit] = useState(null);
   const [lockedSlots, setLockedSlots] = useState({});
   const [savedOutfits, setSavedOutfits] = useState([]);
 
+  const activeWeather = useMemo(() => {
+    if (demoPresetId === 'live') return liveWeather;
+    const preset = DEMO_PRESETS.find((p) => p.id === demoPresetId);
+    if (!preset) return liveWeather;
+    const info = interpretWeather(preset.code, preset.temp, preset.wind, {
+      minTemp: preset.minTemp,
+      maxTemp: preset.maxTemp,
+      rainProb: preset.rainProb,
+    });
+    return {
+      locationName: `${liveWeather?.locationName || selectedCity} (Demo Simulyasiya)`,
+      temp: preset.temp,
+      apparent: preset.apparent,
+      wind: preset.wind,
+      ...info,
+    };
+  }, [demoPresetId, liveWeather, selectedCity]);
+
+  const wardrobeInsights = useMemo(() => {
+    if (!items || items.length === 0) return null;
+    const avgWarmth = (
+      items.reduce((acc, i) => acc + (Number(i.warmth_level) || 3), 0) / items.length
+    ).toFixed(1);
+
+    const hasWaterproof = items.some((i) => i.waterproof);
+    const missingCategories = CATEGORIES.filter(
+      (cat) => cat !== 'Aksesuar' && !items.some((i) => i.category === cat)
+    );
+
+    let suggestion = 'Qarderobun bütün əsas kateqoriyalar üzrə balanslıdır.';
+    if (missingCategories.length > 0) {
+      suggestion = `Tam kombinlər üçün çatışmayan kateqoriya: ${missingCategories.join(', ')}.`;
+    } else if (!hasWaterproof) {
+      suggestion = 'Yağışlı günlər üçün qarderobuna ən azı 1 suya davamlı üst örtük və ya ayaqqabı əlavə etməyin tövsiyə olunur.';
+    }
+
+    return {
+      total: items.length,
+      avgWarmth,
+      waterproofCount: items.filter((i) => i.waterproof).length,
+      suggestion,
+    };
+  }, [items]);
+
   const fetchWeatherByCoords = useCallback(async (lat, lon, label) => {
     setLoadingWeather(true);
     try {
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=auto`
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability&forecast_days=1&timezone=auto`
       );
       const data = await res.json();
       if (data?.current) {
@@ -321,9 +371,21 @@ export default function HomePage() {
         const apparent = Math.round(data.current.apparent_temperature);
         const wind = data.current.wind_speed_10m;
         const code = data.current.weather_code;
-        const info = interpretWeather(code, temp, wind);
 
-        setWeather({
+        let hourlyForecast = null;
+        if (data?.hourly?.temperature_2m?.length) {
+          const temps = data.hourly.temperature_2m;
+          const probs = data.hourly.precipitation_probability || [];
+          hourlyForecast = {
+            minTemp: Math.round(Math.min(...temps)),
+            maxTemp: Math.round(Math.max(...temps)),
+            rainProb: probs.length ? Math.max(...probs) : 0,
+          };
+        }
+
+        const info = interpretWeather(code, temp, wind, hourlyForecast);
+
+        setLiveWeather({
           locationName: label,
           temp,
           apparent,
@@ -339,6 +401,7 @@ export default function HomePage() {
   }, []);
 
   const detectGpsLocation = useCallback(() => {
+    setDemoPresetId('live');
     if (typeof window === 'undefined' || !navigator.geolocation) {
       setLocationSource('GPS dəstəklənmir (şəhər seçildi)');
       const fallback = AZERBAIJAN_CITIES[0];
@@ -367,6 +430,7 @@ export default function HomePage() {
   }, [fetchWeatherByCoords, selectedCity]);
 
   const handleCitySelect = (cityName) => {
+    setDemoPresetId('live');
     setSelectedCity(cityName);
     const cityObj = AZERBAIJAN_CITIES.find((c) => c.name === cityName);
     if (cityObj) {
@@ -388,7 +452,7 @@ export default function HomePage() {
           const raw = localStorage.getItem(`geyin_saved_${currentUser.id}`);
           if (raw) setSavedOutfits(JSON.parse(raw));
         } catch {
-          // ignore storage parse error
+          // ignore
         }
       }
     };
@@ -413,14 +477,14 @@ export default function HomePage() {
   }, [detectGpsLocation]);
 
   useEffect(() => {
-    if (weather && items.length > 0) {
+    if (activeWeather && items.length > 0) {
       setRecommendedOutfit((prev) =>
-        buildSmartOutfit(items, weather, outfitStyleFilter, lockedSlots, prev)
+        buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev)
       );
     } else {
       setRecommendedOutfit(null);
     }
-  }, [weather, items, outfitStyleFilter]);
+  }, [activeWeather, items, outfitStyleFilter]);
 
   const toggleLockSlot = (slotKey) => {
     setLockedSlots((prev) => ({
@@ -430,7 +494,7 @@ export default function HomePage() {
   };
 
   const regenerateSingleSlot = (slotKey) => {
-    if (!weather || !recommendedOutfit) return;
+    if (!activeWeather || !recommendedOutfit) return;
     const tempLocks = {
       top: true,
       bottom: true,
@@ -444,7 +508,7 @@ export default function HomePage() {
       : {};
     const updated = buildSmartOutfit(
       items,
-      weather,
+      activeWeather,
       outfitStyleFilter,
       tempLocks,
       recommendedOutfit,
@@ -454,7 +518,7 @@ export default function HomePage() {
   };
 
   const handleSaveCurrentOutfit = () => {
-    if (!user || !recommendedOutfit || !weather) return;
+    if (!user || !recommendedOutfit || !activeWeather) return;
     const pieces = [
       recommendedOutfit.top,
       recommendedOutfit.bottom,
@@ -468,9 +532,9 @@ export default function HomePage() {
     const newSaved = {
       id: Date.now(),
       createdAt: new Date().toLocaleDateString('az-AZ'),
-      city: weather.locationName,
-      temp: weather.temp,
-      condition: weather.conditionText,
+      city: activeWeather.locationName,
+      temp: activeWeather.temp,
+      condition: activeWeather.conditionText,
       pieces,
     };
 
@@ -479,7 +543,7 @@ export default function HomePage() {
     try {
       localStorage.setItem(`geyin_saved_${user.id}`, JSON.stringify(updatedList));
     } catch {
-      // ignore quota error
+      // ignore
     }
     setMessage('Kombin "Sevimli kombinlərim" bölməsinə əlavə olundu!');
   };
@@ -784,15 +848,15 @@ export default function HomePage() {
                 Canlı Hava & Ağıllı Kombin • {locationSource}
               </span>
               <h2 className="text-xl font-bold mt-1">
-                {loadingWeather
+                {loadingWeather && demoPresetId === 'live'
                   ? 'Hava yoxlanılır...'
-                  : weather
-                  ? `${weather.locationName}: ${weather.temp}°C (${weather.conditionText})`
+                  : activeWeather
+                  ? `${activeWeather.locationName}: ${activeWeather.temp}°C (${activeWeather.conditionText})`
                   : 'Məkan seçin'}
               </h2>
-              {weather && (
+              {activeWeather && (
                 <p className="text-xs text-zinc-400 mt-1">
-                  Hiss olunan: {weather.apparent}°C • Külək: {Math.round(weather.wind)} km/saat
+                  Hiss olunan: {activeWeather.apparent}°C • Günlük: {activeWeather.minTemp}°C / {activeWeather.maxTemp}°C • Külək: {Math.round(activeWeather.wind)} km/saat
                 </p>
               )}
             </div>
@@ -820,15 +884,42 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* General advice box */}
-          {weather && (
-            <div className="rounded-xl bg-zinc-950/80 border border-zinc-800 p-4">
-              <p className="text-xs font-semibold text-zinc-300 mb-1">
-                Ümumi geyim məsləhəti:
-              </p>
-              <p className="text-sm text-zinc-200 leading-relaxed">
-                {weather.generalAdvice}
-              </p>
+          {/* Demo Day Weather Simulator bar */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="text-[11px] text-zinc-400 mr-1">Hava rejimi (Demo test):</span>
+            {DEMO_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => setDemoPresetId(preset.id)}
+                className={`rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer ${
+                  demoPresetId === preset.id
+                    ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+                    : 'bg-zinc-950 text-zinc-400 hover:text-white border border-zinc-800'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
+          {/* General advice & Evening alert */}
+          {activeWeather && (
+            <div className="space-y-2.5">
+              <div className="rounded-xl bg-zinc-950/80 border border-zinc-800 p-4">
+                <p className="text-xs font-semibold text-zinc-300 mb-1">
+                  Ümumi geyim məsləhəti:
+                </p>
+                <p className="text-sm text-zinc-200 leading-relaxed">
+                  {activeWeather.generalAdvice}
+                </p>
+              </div>
+
+              {activeWeather.eveningAlert && (
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-xs text-amber-300">
+                  {activeWeather.eveningAlert}
+                </div>
+              )}
             </div>
           )}
 
@@ -866,10 +957,10 @@ export default function HomePage() {
 
                 <button
                   type="button"
-                  disabled={!weather || items.length === 0}
+                  disabled={!activeWeather || items.length === 0}
                   onClick={() =>
                     setRecommendedOutfit((prev) =>
-                      buildSmartOutfit(items, weather, outfitStyleFilter, lockedSlots, prev)
+                      buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev)
                     )
                   }
                   className="rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 border border-zinc-700 px-3.5 py-2 text-xs font-medium text-white transition cursor-pointer"
@@ -965,6 +1056,29 @@ export default function HomePage() {
             )}
           </div>
         </section>
+
+        {/* Wardrobe Insights Panel */}
+        {wardrobeInsights && (
+          <section className="rounded-2xl bg-zinc-900/80 border border-zinc-800 p-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-6">
+              <div>
+                <p className="text-[11px] text-zinc-400">Ümumi parça</p>
+                <p className="text-lg font-bold">{wardrobeInsights.total} ədəd</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-zinc-400">Orta istilik</p>
+                <p className="text-lg font-bold">{wardrobeInsights.avgWarmth} / 5</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-zinc-400">Suya davamlı</p>
+                <p className="text-lg font-bold">{wardrobeInsights.waterproofCount} ədəd</p>
+              </div>
+            </div>
+            <p className="text-xs text-zinc-300 max-w-md">
+              {wardrobeInsights.suggestion}
+            </p>
+          </section>
+        )}
 
         {/* Saved Outfits */}
         {savedOutfits.length > 0 && (
