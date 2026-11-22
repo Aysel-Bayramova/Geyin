@@ -1,14 +1,34 @@
+```jsx
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = [
-  'Üst geyim',
-  'Alt geyim',
-  'Üst örtük (Gödəkçə/Palto)',
-  'Ayaqqabı',
-  'Aksesuar',
+  {
+    value: 'Üst geyim',
+    label: { az: 'Üst geyim', en: 'Top', ru: 'Верх' },
+  },
+  {
+    value: 'Alt geyim',
+    label: { az: 'Alt geyim', en: 'Bottom', ru: 'Низ' },
+  },
+  {
+    value: 'Üst örtük (Gödəkçə/Palto)',
+    label: {
+      az: 'Üst örtük (Gödəkçə/Palto)',
+      en: 'Outerwear (Jacket/Coat)',
+      ru: 'Верхняя одежда (Куртка/Пальто)',
+    },
+  },
+  {
+    value: 'Ayaqqabı',
+    label: { az: 'Ayaqqabı', en: 'Shoes', ru: 'Обувь' },
+  },
+  {
+    value: 'Aksesuar',
+    label: { az: 'Aksesuar', en: 'Accessory', ru: 'Аксессуар' },
+  },
 ];
 
 const STYLES = [
@@ -618,6 +638,12 @@ export default function HomePage() {
   const [lang, setLang] = useState('az');
   const tx = UI_TEXT[lang] || UI_TEXT.az;
 
+  const getCategoryLabel = (catValue) => {
+    const found = CATEGORIES.find((c) => c.value === catValue);
+    if (!found) return catValue;
+    return found.label[lang] || found.label.az;
+  };
+
   // Theme state: 'auto' | 'light' | 'dark'
   const [themeMode, setThemeMode] = useState('auto');
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
@@ -633,12 +659,12 @@ export default function HomePage() {
   const [items, setItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('Hamısı');
+    const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('Hamısı');
 
   // Form state for new item
   const [imageFile, setImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState('');
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [category, setCategory] = useState(CATEGORIES[0].value);
   const [subCategory, setSubCategory] = useState('');
   const [color, setColor] = useState('');
   const [warmthLevel, setWarmthLevel] = useState(3);
@@ -765,8 +791,8 @@ export default function HomePage() {
 
     const hasWaterproof = items.some((i) => i.waterproof);
     const missingCategories = CATEGORIES.filter(
-      (cat) => cat !== 'Aksesuar' && !items.some((i) => i.category === cat)
-    );
+      (cat) => cat.value !== 'Aksesuar' && !items.some((i) => i.category === cat.value)
+    ).map((cat) => cat.label[lang] || cat.label.az);
 
     let suggestion =
       lang === 'en'
@@ -1073,7 +1099,7 @@ export default function HomePage() {
     setSubmitting(true);
 
     try {
-      if (isRegister) {
+            if (isRegister) {
         const { error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) throw signUpError;
         setMessage('OK');
@@ -1596,7 +1622,7 @@ export default function HomePage() {
                             />
                             <div className="p-2.5 space-y-1">
                               <p className="text-xs font-medium truncate">
-                                {slot.item.sub_category || slot.item.category}
+                                {slot.item.sub_category || getCategoryLabel(slot.item.category)}
                               </p>
                               <p className={`text-[11px] ${t.muted}`}>
                                 {slot.item.color ? `${slot.item.color} • ` : ''}
@@ -1695,7 +1721,7 @@ export default function HomePage() {
                       <img
                         key={`${saved.id}-${idx}`}
                         src={p.image_url}
-                        alt={p.sub_category || p.category}
+                        alt={p.sub_category || getCategoryLabel(p.category)}
                         className={`w-16 h-20 rounded-lg object-cover border ${t.border} shrink-0`}
                       />
                     ))}
@@ -1740,8 +1766,8 @@ export default function HomePage() {
                 className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               >
                 {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label[lang] || cat.label.az}
                   </option>
                 ))}
               </select>
@@ -1840,15 +1866,24 @@ export default function HomePage() {
               {tx.myItemsTitle} ({filteredItems.length})
             </h2>
             <div className="flex flex-wrap gap-2">
-              {['Hamısı', ...CATEGORIES].map((cat) => (
+              <button
+                onClick={() => setSelectedCategoryFilter('Hamısı')}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${
+                  selectedCategoryFilter === 'Hamısı' ? t.pillActive : `${t.pillIdle} border`
+                }`}
+              >
+                {tx.allFilter}
+              </button>
+
+              {CATEGORIES.map((cat) => (
                 <button
-                  key={cat}
-                  onClick={() => setSelectedCategoryFilter(cat)}
+                  key={cat.value}
+                  onClick={() => setSelectedCategoryFilter(cat.value)}
                   className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${
-                    selectedCategoryFilter === cat ? t.pillActive : `${t.pillIdle} border`
+                    selectedCategoryFilter === cat.value ? t.pillActive : `${t.pillIdle} border`
                   }`}
                 >
-                  {cat === 'Hamısı' ? tx.allFilter : cat}
+                  {cat.label[lang] || cat.label.az}
                 </button>
               ))}
             </div>
@@ -1874,7 +1909,7 @@ export default function HomePage() {
                       className="w-full h-44 object-cover"
                     />
                     <div className="p-3.5 space-y-1.5">
-                      <p className="text-xs font-semibold">{item.category}</p>
+                      <p className="text-xs font-semibold">{getCategoryLabel(item.category)}</p>
                       {item.sub_category && (
                         <p className={`text-xs ${t.subtext}`}>{item.sub_category}</p>
                       )}
