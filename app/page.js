@@ -39,40 +39,40 @@ const STYLES = [
 
 const WORLD_CITIES = [
   // Azərbaycan
-  { name: 'Bakı', country: 'Azərbaycan', lat: 40.4093, lon: 49.8671 },
-  { name: 'Sumqayıt', country: 'Azərbaycan', lat: 40.5897, lon: 49.6686 },
-  { name: 'Gəncə', country: 'Azərbaycan', lat: 40.6828, lon: 46.3606 },
-  { name: 'Mingəçevir', country: 'Azərbaycan', lat: 40.7703, lon: 47.0496 },
-  { name: 'Şəki', country: 'Azərbaycan', lat: 41.1919, lon: 47.1706 },
-  { name: 'Lənkəran', country: 'Azərbaycan', lat: 38.7543, lon: 48.8506 },
-  { name: 'Naxçıvan', country: 'Azərbaycan', lat: 39.2089, lon: 45.4122 },
-  { name: 'Şuşa', country: 'Azərbaycan', lat: 39.7601, lon: 46.7465 },
-  { name: 'Quba', country: 'Azərbaycan', lat: 41.3611, lon: 48.5134 },
-  { name: 'Şamaxı', country: 'Azərbaycan', lat: 40.6314, lon: 48.6414 },
+  { name: 'Bakı', code: 'AZ', nameByLang: { az: 'Bakı', en: 'Baku', ru: 'Баку' }, lat: 40.4093, lon: 49.8671 },
+  { name: 'Sumqayıt', code: 'AZ', nameByLang: { az: 'Sumqayıt', en: 'Sumgait', ru: 'Сумгайыт' }, lat: 40.5897, lon: 49.6686 },
+  { name: 'Gəncə', code: 'AZ', nameByLang: { az: 'Gəncə', en: 'Ganja', ru: 'Гянджа' }, lat: 40.6828, lon: 46.3606 },
+  { name: 'Mingəçevir', code: 'AZ', nameByLang: { az: 'Mingəçevir', en: 'Mingachevir', ru: 'Мингечевир' }, lat: 40.7703, lon: 47.0496 },
+  { name: 'Şəki', code: 'AZ', nameByLang: { az: 'Şəki', en: 'Shaki', ru: 'Шеки' }, lat: 41.1919, lon: 47.1706 },
+  { name: 'Lənkəran', code: 'AZ', nameByLang: { az: 'Lənkəran', en: 'Lankaran', ru: 'Ленкорань' }, lat: 38.7543, lon: 48.8506 },
+  { name: 'Naxçıvan', code: 'AZ', nameByLang: { az: 'Naxçıvan', en: 'Nakhchivan', ru: 'Нахчыван' }, lat: 39.2089, lon: 45.4122 },
+  { name: 'Şuşa', code: 'AZ', nameByLang: { az: 'Şuşa', en: 'Shusha', ru: 'Шуша' }, lat: 39.7601, lon: 46.7465 },
+  { name: 'Quba', code: 'AZ', nameByLang: { az: 'Quba', en: 'Guba', ru: 'Губа' }, lat: 41.3611, lon: 48.5134 },
+  { name: 'Şamaxı', code: 'AZ', nameByLang: { az: 'Şamaxı', en: 'Shamakhi', ru: 'Шамахы' }, lat: 40.6314, lon: 48.6414 },
 
   // Dünya şəhərləri
-  { name: 'İstanbul', country: 'Türkiye', lat: 41.0082, lon: 28.9784 },
-  { name: 'Ankara', country: 'Türkiye', lat: 39.9334, lon: 32.8597 },
-  { name: 'London', country: 'UK', lat: 51.5072, lon: -0.1276 },
-  { name: 'Paris', country: 'France', lat: 48.8566, lon: 2.3522 },
-  { name: 'Berlin', country: 'Germany', lat: 52.52, lon: 13.405 },
-  { name: 'Roma', country: 'Italy', lat: 41.9028, lon: 12.4964 },
-  { name: 'Madrid', country: 'Spain', lat: 40.4168, lon: -3.7038 },
-  { name: 'Amsterdam', country: 'Netherlands', lat: 52.3676, lon: 4.9041 },
-  { name: 'Vyana', country: 'Austria', lat: 48.2082, lon: 16.3738 },
-  { name: 'Dubay', country: 'UAE', lat: 25.2048, lon: 55.2708 },
-  { name: 'Ər-Riyad', country: 'Saudi Arabia', lat: 24.7136, lon: 46.6753 },
-  { name: 'Nyu-York', country: 'USA', lat: 40.7128, lon: -74.006 },
-  { name: 'Los Anceles', country: 'USA', lat: 34.0522, lon: -118.2437 },
-  { name: 'Toronto', country: 'Canada', lat: 43.6532, lon: -79.3832 },
-  { name: 'Tokio', country: 'Japan', lat: 35.6762, lon: 139.6503 },
-  { name: 'Seul', country: 'South Korea', lat: 37.5665, lon: 126.978 },
-  { name: 'Pekin', country: 'China', lat: 39.9042, lon: 116.4074 },
-  { name: 'Sinqapur', country: 'Singapore', lat: 1.3521, lon: 103.8198 },
-  { name: 'Moskva', country: 'Russia', lat: 55.7558, lon: 37.6173 },
-  { name: 'Sidney', country: 'Australia', lat: -33.8688, lon: 151.2093 },
-  { name: 'San-Paulu', country: 'Brazil', lat: -23.5505, lon: -46.6333 },
-  { name: 'Qahirə', country: 'Egypt', lat: 30.0444, lon: 31.2357 },
+  { name: 'İstanbul', code: 'TR', nameByLang: { az: 'İstanbul', en: 'Istanbul', ru: 'Стамбул' }, lat: 41.0082, lon: 28.9784 },
+  { name: 'Ankara', code: 'TR', nameByLang: { az: 'Ankara', en: 'Ankara', ru: 'Анкара' }, lat: 39.9334, lon: 32.8597 },
+  { name: 'London', code: 'GB', nameByLang: { az: 'London', en: 'London', ru: 'Лондон' }, lat: 51.5072, lon: -0.1276 },
+  { name: 'Paris', code: 'FR', nameByLang: { az: 'Paris', en: 'Paris', ru: 'Париж' }, lat: 48.8566, lon: 2.3522 },
+  { name: 'Berlin', code: 'DE', nameByLang: { az: 'Berlin', en: 'Berlin', ru: 'Берлин' }, lat: 52.52, lon: 13.405 },
+  { name: 'Roma', code: 'IT', nameByLang: { az: 'Roma', en: 'Rome', ru: 'Рим' }, lat: 41.9028, lon: 12.4964 },
+  { name: 'Madrid', code: 'ES', nameByLang: { az: 'Madrid', en: 'Madrid', ru: 'Мадрид' }, lat: 40.4168, lon: -3.7038 },
+  { name: 'Amsterdam', code: 'NL', nameByLang: { az: 'Amsterdam', en: 'Amsterdam', ru: 'Амстердам' }, lat: 52.3676, lon: 4.9041 },
+  { name: 'Vyana', code: 'AT', nameByLang: { az: 'Vyana', en: 'Vienna', ru: 'Вена' }, lat: 48.2082, lon: 16.3738 },
+  { name: 'Dubay', code: 'AE', nameByLang: { az: 'Dubay', en: 'Dubai', ru: 'Дубай' }, lat: 25.2048, lon: 55.2708 },
+  { name: 'Ər-Riyad', code: 'SA', nameByLang: { az: 'Ər-Riyad', en: 'Riyadh', ru: 'Эр-Рияд' }, lat: 24.7136, lon: 46.6753 },
+  { name: 'Nyu-York', code: 'US', nameByLang: { az: 'Nyu-York', en: 'New York', ru: 'Нью-Йорк' }, lat: 40.7128, lon: -74.006 },
+  { name: 'Los Anceles', code: 'US', nameByLang: { az: 'Los Anceles', en: 'Los Angeles', ru: 'Лос-Анджелес' }, lat: 34.0522, lon: -118.2437 },
+  { name: 'Toronto', code: 'CA', nameByLang: { az: 'Toronto', en: 'Toronto', ru: 'Торонто' }, lat: 43.6532, lon: -79.3832 },
+  { name: 'Tokio', code: 'JP', nameByLang: { az: 'Tokio', en: 'Tokyo', ru: 'Токио' }, lat: 35.6762, lon: 139.6503 },
+  { name: 'Seul', code: 'KR', nameByLang: { az: 'Seul', en: 'Seoul', ru: 'Сеул' }, lat: 37.5665, lon: 126.978 },
+  { name: 'Pekin', code: 'CN', nameByLang: { az: 'Pekin', en: 'Beijing', ru: 'Пекин' }, lat: 39.9042, lon: 116.4074 },
+  { name: 'Sinqapur', code: 'SG', nameByLang: { az: 'Sinqapur', en: 'Singapore', ru: 'Сингапур' }, lat: 1.3521, lon: 103.8198 },
+  { name: 'Moskva', code: 'RU', nameByLang: { az: 'Moskva', en: 'Moscow', ru: 'Москва' }, lat: 55.7558, lon: 37.6173 },
+  { name: 'Sidney', code: 'AU', nameByLang: { az: 'Sidney', en: 'Sydney', ru: 'Сидней' }, lat: -33.8688, lon: 151.2093 },
+  { name: 'San-Paulu', code: 'BR', nameByLang: { az: 'San-Paulu', en: 'São Paulo', ru: 'Сан-Паулу' }, lat: -23.5505, lon: -46.6333 },
+  { name: 'Qahirə', code: 'EG', nameByLang: { az: 'Qahirə', en: 'Cairo', ru: 'Каир' }, lat: 30.0444, lon: 31.2357 },
 ];
 
 const DEMO_PRESETS = [
@@ -409,7 +409,9 @@ function findNearestCity(lat, lon, lang = 'az') {
       nearest = city;
     }
   }
-  if (minDist < 1.2) return nearest.name;
+  if (minDist < 1.2) {
+    return nearest.nameByLang ? nearest.nameByLang[lang] || nearest.name : nearest.name;
+  }
   const prefix = lang === 'en' ? 'GPS Location' : lang === 'ru' ? 'GPS точка' : 'GPS Məkanı';
   return `${prefix} (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
 }
@@ -873,7 +875,9 @@ export default function HomePage() {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         const nearestName = findNearestCity(latitude, longitude, lang);
-        const matchedCity = WORLD_CITIES.find((c) => c.name === nearestName);
+        const matchedCity = WORLD_CITIES.find(
+          (c) => c.name === nearestName || (c.nameByLang && c.nameByLang[lang] === nearestName)
+        );
         if (matchedCity) setSelectedCity(matchedCity.name);
         setLocationSource(tx.gpsFound);
         fetchWeatherByCoords(latitude, longitude, nearestName);
@@ -893,8 +897,9 @@ export default function HomePage() {
     setSelectedCity(cityName);
     const cityObj = WORLD_CITIES.find((c) => c.name === cityName);
     if (cityObj) {
+      const displayCity = cityObj.nameByLang ? cityObj.nameByLang[lang] || cityObj.name : cityObj.name;
       setLocationSource(tx.citySelected);
-      fetchWeatherByCoords(cityObj.lat, cityObj.lon, cityObj.name);
+      fetchWeatherByCoords(cityObj.lat, cityObj.lon, displayCity);
     }
   };
 
@@ -916,7 +921,11 @@ export default function HomePage() {
         setError(tx.cityNotFound);
         return;
       }
-      const displayLabel = place.country ? `${place.name}, ${place.country}` : place.name;
+      const displayLabel = place.country_code
+        ? `${place.name} (${place.country_code})`
+        : place.country
+        ? `${place.name}, ${place.country}`
+        : place.name;
       setDemoPresetId('live');
       setLocationSource(tx.citySearched);
       setCitySearchQuery('');
@@ -1466,8 +1475,8 @@ export default function HomePage() {
                 className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
               >
                 {WORLD_CITIES.map((city) => (
-                  <option key={`${city.name}-${city.country}`} value={city.name}>
-                    {city.name} ({city.country})
+                  <option key={`${city.name}-${city.code}`} value={city.name}>
+                    {city.nameByLang ? city.nameByLang[lang] || city.name : city.name} ({city.code})
                   </option>
                 ))}
               </select>
