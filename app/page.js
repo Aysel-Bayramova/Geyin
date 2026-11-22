@@ -3,93 +3,366 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORIES = ['Üst geyim', 'Alt geyim', 'Üst örtük (Gödəkçə/Palto)', 'Ayaqqabı', 'Aksesuar'];
-const STYLES = [
-  { value: 'gundelik', label: 'Gündəlik' },
-  { value: 'klassik', label: 'Klassik / İş' },
-  { value: 'idman', label: 'İdman' },
-  { value: 'gece', label: 'Xüsusi / Axşam' },
+const CATEGORIES = [
+  'Üst geyim',
+  'Alt geyim',
+  'Üst örtük (Gödəkçə/Palto)',
+  'Ayaqqabı',
+  'Aksesuar',
 ];
 
-const AZERBAIJAN_CITIES = [
-  { name: 'Bakı', lat: 40.4093, lon: 49.8671 },
-  { name: 'Sumqayıt', lat: 40.5897, lon: 49.6686 },
-  { name: 'Gəncə', lat: 40.6828, lon: 46.3606 },
-  { name: 'Mingəçevir', lat: 40.7703, lon: 47.0496 },
-  { name: 'Şirvan', lat: 39.9378, lon: 48.929 },
-  { name: 'Naxçıvan', lat: 39.2089, lon: 45.4122 },
-  { name: 'Lənkəran', lat: 38.7543, lon: 48.8506 },
-  { name: 'Şəki', lat: 41.1919, lon: 47.1706 },
-  { name: 'Yevlax', lat: 40.6183, lon: 47.1501 },
-  { name: 'Xankəndi', lat: 39.8153, lon: 46.7519 },
-  { name: 'Şuşa', lat: 39.7601, lon: 46.7465 },
-  { name: 'Quba', lat: 41.3611, lon: 48.5134 },
-  { name: 'Qusar', lat: 41.4267, lon: 48.4346 },
-  { name: 'Xaçmaz', lat: 41.4635, lon: 48.806 },
-  { name: 'Şamaxı', lat: 40.6314, lon: 48.6414 },
-  { name: 'İsmayıllı', lat: 40.7871, lon: 48.1523 },
-  { name: 'Qəbələ', lat: 40.9814, lon: 47.8458 },
-  { name: 'Zaqatala', lat: 41.6316, lon: 46.6448 },
-  { name: 'Balakən', lat: 41.7263, lon: 46.4048 },
-  { name: 'Qax', lat: 41.4183, lon: 46.9204 },
-  { name: 'Oğuz', lat: 41.0713, lon: 47.4651 },
-  { name: 'Göyçay', lat: 40.6506, lon: 47.7422 },
-  { name: 'Ağdaş', lat: 40.647, lon: 47.4738 },
-  { name: 'Kürdəmir', lat: 40.3453, lon: 48.1509 },
-  { name: 'Sabirabad', lat: 40.0087, lon: 48.477 },
-  { name: 'Saatlı', lat: 39.9321, lon: 48.3689 },
-  { name: 'İmişli', lat: 39.871, lon: 48.06 },
-  { name: 'Beyləqan', lat: 39.7756, lon: 47.6186 },
-  { name: 'Ağcabədi', lat: 40.0502, lon: 47.4594 },
-  { name: 'Bərdə', lat: 40.3758, lon: 47.1262 },
-  { name: 'Tərtər', lat: 40.342, lon: 46.9316 },
-  { name: 'Ağdam', lat: 39.9911, lon: 46.9274 },
-  { name: 'Füzuli', lat: 39.6009, lon: 47.1453 },
-  { name: 'Cəbrayıl', lat: 39.3992, lon: 47.0284 },
-  { name: 'Zəngilan', lat: 39.0837, lon: 46.6525 },
-  { name: 'Qubadlı', lat: 39.3444, lon: 46.5818 },
-  { name: 'Laçın', lat: 39.6383, lon: 46.5461 },
-  { name: 'Kəlbəcər', lat: 40.1098, lon: 46.0445 },
-  { name: 'Şəmkir', lat: 40.8297, lon: 46.0178 },
-  { name: 'Tovuz', lat: 40.9922, lon: 45.6283 },
-  { name: 'Qazax', lat: 41.0925, lon: 45.3656 },
-  { name: 'Ağstafa', lat: 41.1189, lon: 45.4539 },
-  { name: 'Gədəbəy', lat: 40.57, lon: 45.8123 },
-  { name: 'Daşkəsən', lat: 40.5202, lon: 46.0779 },
-  { name: 'Göygöl', lat: 40.5906, lon: 46.3189 },
-  { name: 'Goranboy', lat: 40.6103, lon: 46.7897 },
-  { name: 'Masallı', lat: 39.0353, lon: 48.6654 },
-  { name: 'Astara', lat: 38.456, lon: 48.875 },
-  { name: 'Lerik', lat: 38.7739, lon: 48.4149 },
-  { name: 'Yardımlı', lat: 38.9077, lon: 48.2405 },
-  { name: 'Cəlilabad', lat: 39.2096, lon: 48.4919 },
-  { name: 'Biləsuvar', lat: 39.4583, lon: 48.545 },
-  { name: 'Neftçala', lat: 39.3768, lon: 49.247 },
-  { name: 'Salyan', lat: 39.5962, lon: 48.9848 },
-  { name: 'Hacıqabul', lat: 40.0387, lon: 48.9429 },
-  { name: 'Qobustan', lat: 40.5326, lon: 48.9282 },
-  { name: 'Ağsu', lat: 40.5703, lon: 48.4009 },
-  { name: 'Ucar', lat: 40.519, lon: 47.6542 },
-  { name: 'Zərdab', lat: 40.2184, lon: 47.7121 },
-  { name: 'Siyəzən', lat: 41.0784, lon: 49.1118 },
-  { name: 'Şabran', lat: 41.2012, lon: 48.9871 },
-  { name: 'Xızı', lat: 40.9085, lon: 49.0748 },
-  { name: 'Ordubad', lat: 38.9096, lon: 46.0227 },
-  { name: 'Culfa', lat: 38.9539, lon: 45.6293 },
-  { name: 'Şərur', lat: 39.5529, lon: 44.9799 },
+const STYLES = [
+  { value: 'gundelik', label: { az: 'Gündəlik', en: 'Casual', ru: 'Повседневный' } },
+  { value: 'klassik', label: { az: 'Klassik / İş', en: 'Classic / Work', ru: 'Классика / Офис' } },
+  { value: 'idman', label: { az: 'İdman', en: 'Sporty', ru: 'Спортивный' } },
+  { value: 'gece', label: { az: 'Xüsusi / Axşam', en: 'Evening / Special', ru: 'Вечерний' } },
+];
+
+const WORLD_CITIES = [
+  // Azərbaycan
+  { name: 'Bakı', country: 'Azərbaycan', lat: 40.4093, lon: 49.8671 },
+  { name: 'Sumqayıt', country: 'Azərbaycan', lat: 40.5897, lon: 49.6686 },
+  { name: 'Gəncə', country: 'Azərbaycan', lat: 40.6828, lon: 46.3606 },
+  { name: 'Mingəçevir', country: 'Azərbaycan', lat: 40.7703, lon: 47.0496 },
+  { name: 'Şəki', country: 'Azərbaycan', lat: 41.1919, lon: 47.1706 },
+  { name: 'Lənkəran', country: 'Azərbaycan', lat: 38.7543, lon: 48.8506 },
+  { name: 'Naxçıvan', country: 'Azərbaycan', lat: 39.2089, lon: 45.4122 },
+  { name: 'Şuşa', country: 'Azərbaycan', lat: 39.7601, lon: 46.7465 },
+  { name: 'Quba', country: 'Azərbaycan', lat: 41.3611, lon: 48.5134 },
+  { name: 'Şamaxı', country: 'Azərbaycan', lat: 40.6314, lon: 48.6414 },
+
+  // Dünya şəhərləri
+  { name: 'İstanbul', country: 'Türkiye', lat: 41.0082, lon: 28.9784 },
+  { name: 'Ankara', country: 'Türkiye', lat: 39.9334, lon: 32.8597 },
+  { name: 'London', country: 'UK', lat: 51.5072, lon: -0.1276 },
+  { name: 'Paris', country: 'France', lat: 48.8566, lon: 2.3522 },
+  { name: 'Berlin', country: 'Germany', lat: 52.52, lon: 13.405 },
+  { name: 'Roma', country: 'Italy', lat: 41.9028, lon: 12.4964 },
+  { name: 'Madrid', country: 'Spain', lat: 40.4168, lon: -3.7038 },
+  { name: 'Amsterdam', country: 'Netherlands', lat: 52.3676, lon: 4.9041 },
+  { name: 'Vyana', country: 'Austria', lat: 48.2082, lon: 16.3738 },
+  { name: 'Dubay', country: 'UAE', lat: 25.2048, lon: 55.2708 },
+  { name: 'Ər-Riyad', country: 'Saudi Arabia', lat: 24.7136, lon: 46.6753 },
+  { name: 'Nyu-York', country: 'USA', lat: 40.7128, lon: -74.006 },
+  { name: 'Los Anceles', country: 'USA', lat: 34.0522, lon: -118.2437 },
+  { name: 'Toronto', country: 'Canada', lat: 43.6532, lon: -79.3832 },
+  { name: 'Tokio', country: 'Japan', lat: 35.6762, lon: 139.6503 },
+  { name: 'Seul', country: 'South Korea', lat: 37.5665, lon: 126.978 },
+  { name: 'Pekin', country: 'China', lat: 39.9042, lon: 116.4074 },
+  { name: 'Sinqapur', country: 'Singapore', lat: 1.3521, lon: 103.8198 },
+  { name: 'Moskva', country: 'Russia', lat: 55.7558, lon: 37.6173 },
+  { name: 'Sidney', country: 'Australia', lat: -33.8688, lon: 151.2093 },
+  { name: 'San-Paulu', country: 'Brazil', lat: -23.5505, lon: -46.6333 },
+  { name: 'Qahirə', country: 'Egypt', lat: 30.0444, lon: 31.2357 },
 ];
 
 const DEMO_PRESETS = [
-  { id: 'live', label: 'Canlı Hava' },
-  { id: 'sunny', label: 'Günəşli 25°C', temp: 25, apparent: 26, wind: 10, code: 0, minTemp: 19, maxTemp: 26, rainProb: 5 },
-  { id: 'rainy', label: 'Yağışlı 10°C', temp: 10, apparent: 8, wind: 22, code: 63, minTemp: 7, maxTemp: 12, rainProb: 85 },
-  { id: 'snowy', label: 'Qarlı 0°C', temp: 0, apparent: -4, wind: 30, code: 73, minTemp: -3, maxTemp: 2, rainProb: 90 },
+  { id: 'live', label: { az: 'Canlı Hava', en: 'Live Weather', ru: 'Живая погода' } },
+  {
+    id: 'sunny',
+    label: { az: 'Günəşli 25°C', en: 'Sunny 25°C', ru: 'Солнечно 25°C' },
+    temp: 25,
+    apparent: 26,
+    wind: 10,
+    code: 0,
+    minTemp: 19,
+    maxTemp: 26,
+    rainProb: 5,
+  },
+  {
+    id: 'rainy',
+    label: { az: 'Yağışlı 10°C', en: 'Rainy 10°C', ru: 'Дождь 10°C' },
+    temp: 10,
+    apparent: 8,
+    wind: 22,
+    code: 63,
+    minTemp: 7,
+    maxTemp: 12,
+    rainProb: 85,
+  },
+  {
+    id: 'snowy',
+    label: { az: 'Qarlı 0°C', en: 'Snowy 0°C', ru: 'Снег 0°C' },
+    temp: 0,
+    apparent: -4,
+    wind: 30,
+    code: 73,
+    minTemp: -3,
+    maxTemp: 2,
+    rainProb: 90,
+  },
 ];
+
+const UI_TEXT = {
+  az: {
+    loading: 'Yüklənir...',
+    loginSubtitle: 'Hava şəraitinə uyğun kombinlər üçün hesabına daxil ol.',
+    registerSubtitle: 'Yeni hesab yarat və qarderobunu qur.',
+    email: 'E-poçt',
+    password: 'Şifrə',
+    passwordHint: 'Ən az 6 simvol',
+    signIn: 'Daxil ol',
+    signUp: 'Qeydiyyatdan keç',
+    pleaseWait: 'Gözləyin...',
+    haveAccount: 'Artıq hesabın var? Daxil ol',
+    noAccount: 'Hesabın yoxdur? Yeni hesab yarat',
+    logout: 'Çıxış et',
+    liveWeatherTitle: 'Canlı Hava & Ağıllı Kombin',
+    gpsFinding: 'GPS ilə məkan tapılır...',
+    gpsFound: 'GPS ilə tapıldı',
+    gpsDenied: 'GPS icazəsi verilmədi (şəhər seçin)',
+    gpsUnsupported: 'GPS dəstəklənmir (şəhər seçildi)',
+    citySelected: 'Siyahıdan seçildi',
+    citySearched: 'Axtarışla tapıldı',
+    checkingWeather: 'Hava yoxlanılır...',
+    chooseLocation: 'Məkan seçin',
+    feelsLike: 'Hiss olunan',
+    dailyRange: 'Günlük',
+    wind: 'Külək',
+    kmh: 'km/saat',
+    gpsBtn: 'GPS ilə tap',
+    searchCityPlaceholder: 'Dünya şəhəri axtar (məs: Tokyo, Paris)...',
+    searchBtn: 'Tap',
+    searching: 'Axtarılır...',
+    cityNotFound: 'Şəhər tapılmadı, başqa ad yoxlayın.',
+    demoMode: 'Hava rejimi (Demo test):',
+    generalAdviceTitle: 'Ümumi geyim məsləhəti:',
+    todayOutfitTitle: 'Qarderobundan bugünkü kombin',
+    whyOutfit: 'Niyə bu kombin:',
+    defaultOutfitSub: 'Hava temperaturu və yağış/külək göstəricilərinə uyğun seçildi',
+    allStyles: 'Bütün stillər',
+    generateAnother: 'Başqa kombin yarat',
+    saveOutfit: 'Yadda saxla',
+    savedToast: 'Kombin "Sevimli kombinlərim" bölməsinə əlavə olundu!',
+    loadedToast: 'Sevimli kombin əsas sahəyə yükləndi.',
+    emptyWardrobeOutfit:
+      'Qarderobunda hələ paltar yoxdur. Aşağıdan üst geyim, alt geyim və ayaqqabı əlavə et ki, avtomatik kombin quraq!',
+    locked: 'Kilidli',
+    lock: 'Kilidlə',
+    swap: 'Dəyiş',
+    notFoundInSlot: 'Qarderobda bu kateqoriya tapılmadı',
+    warmthShort: 'İstilik',
+    totalItems: 'Ümumi parça',
+    avgWarmth: 'Orta istilik',
+    waterproofCount: 'Suya davamlı',
+    piecesUnit: 'ədəd',
+    savedOutfitsTitle: 'Sevimli kombinlərim',
+    loadBtn: 'Yüklə',
+    deleteBtn: 'Sil',
+    addNewItemTitle: 'Yeni paltar əlavə et',
+    photoLabel: 'Paltar şəkli *',
+    previewReady: 'Seçilmiş şəkil hazırdır',
+    categoryLabel: 'Kateqoriya *',
+    subCategoryLabel: 'Alt kateqoriya (məs: Hudi, Cins)',
+    subCategoryPlaceholder: 'Məsələn: Oversize hudi',
+    colorLabel: 'Rəng',
+    colorPlaceholder: 'Məsələn: Qara, Bej, Göy',
+    styleLabel: 'Stil',
+    warmthSlider: 'İstilik səviyyəsi (1 = çox nazik, 5 = çox qalın)',
+    waterproofCheck: 'Suya davamlı (yağış üçün)',
+    windproofCheck: 'Küləyə davamlı',
+    addToWardrobeBtn: 'Qarderoba əlavə et',
+    uploadingBtn: 'Yüklənir...',
+    addedToast: 'Paltar qarderoba əlavə olundu!',
+    myItemsTitle: 'Əşyalarım',
+    allFilter: 'Hamısı',
+    loadingWardrobe: 'Qarderob yüklənir...',
+    emptyCategoryMsg:
+      'Bu kateqoriyada hələ paltar yoxdur. Yuxarıdakı formadan ilk paltarını əlavə et!',
+    waterproofBadge: 'Suya davamlı',
+    windproofBadge: 'Küləyə davamlı',
+    auto: 'Avto',
+    light: 'Açıq',
+    dark: 'Qaranlıq',
+    slotLabels: {
+      top: 'Üst geyim',
+      bottom: 'Alt geyim',
+      outerwear: 'Üst örtük',
+      shoes: 'Ayaqqabı',
+      accessory: 'Aksesuar',
+    },
+  },
+  en: {
+    loading: 'Loading...',
+    loginSubtitle: 'Sign in for weather-smart outfits from your wardrobe.',
+    registerSubtitle: 'Create an account and build your digital wardrobe.',
+    email: 'Email',
+    password: 'Password',
+    passwordHint: 'At least 6 characters',
+    signIn: 'Sign in',
+    signUp: 'Sign up',
+    pleaseWait: 'Please wait...',
+    haveAccount: 'Already have an account? Sign in',
+    noAccount: "Don't have an account? Create one",
+    logout: 'Sign out',
+    liveWeatherTitle: 'Live Weather & Smart Outfit',
+    gpsFinding: 'Detecting location via GPS...',
+    gpsFound: 'Located via GPS',
+    gpsDenied: 'GPS denied (select a city)',
+    gpsUnsupported: 'GPS unsupported (city selected)',
+    citySelected: 'Selected from list',
+    citySearched: 'Found via search',
+    checkingWeather: 'Checking weather...',
+    chooseLocation: 'Choose a location',
+    feelsLike: 'Feels like',
+    dailyRange: 'Daily',
+    wind: 'Wind',
+    kmh: 'km/h',
+    gpsBtn: 'Use GPS',
+    searchCityPlaceholder: 'Search any world city (e.g. Tokyo, Paris)...',
+    searchBtn: 'Find',
+    searching: 'Searching...',
+    cityNotFound: 'City not found. Try another name.',
+    demoMode: 'Weather mode (Demo test):',
+    generalAdviceTitle: 'General dressing tip:',
+    todayOutfitTitle: "Today's outfit from your wardrobe",
+    whyOutfit: 'Why this outfit:',
+    defaultOutfitSub: 'Selected based on temperature, rain, and wind',
+    allStyles: 'All styles',
+    generateAnother: 'Generate another',
+    saveOutfit: 'Save outfit',
+    savedToast: 'Outfit added to Saved Outfits!',
+    loadedToast: 'Saved outfit loaded into main view.',
+    emptyWardrobeOutfit:
+      'Your wardrobe is empty. Add tops, bottoms, and shoes below to generate smart outfits!',
+    locked: 'Locked',
+    lock: 'Lock',
+    swap: 'Swap',
+    notFoundInSlot: 'No item found in this category',
+    warmthShort: 'Warmth',
+    totalItems: 'Total items',
+    avgWarmth: 'Avg warmth',
+    waterproofCount: 'Waterproof',
+    piecesUnit: 'items',
+    savedOutfitsTitle: 'Saved Outfits',
+    loadBtn: 'Load',
+    deleteBtn: 'Delete',
+    addNewItemTitle: 'Add new clothing item',
+    photoLabel: 'Clothing photo *',
+    previewReady: 'Selected photo ready',
+    categoryLabel: 'Category *',
+    subCategoryLabel: 'Subcategory (e.g. Hoodie, Jeans)',
+    subCategoryPlaceholder: 'e.g. Oversized hoodie',
+    colorLabel: 'Color',
+    colorPlaceholder: 'e.g. Black, Beige, Blue',
+    styleLabel: 'Style',
+    warmthSlider: 'Warmth level (1 = very thin, 5 = very thick)',
+    waterproofCheck: 'Waterproof (for rain)',
+    windproofCheck: 'Windproof',
+    addToWardrobeBtn: 'Add to wardrobe',
+    uploadingBtn: 'Uploading...',
+    addedToast: 'Item added to your wardrobe!',
+    myItemsTitle: 'My Items',
+    allFilter: 'All',
+    loadingWardrobe: 'Loading wardrobe...',
+    emptyCategoryMsg: 'No items in this category yet. Add your first item above!',
+    waterproofBadge: 'Waterproof',
+    windproofBadge: 'Windproof',
+    auto: 'Auto',
+    light: 'Light',
+    dark: 'Dark',
+    slotLabels: {
+      top: 'Top',
+      bottom: 'Bottom',
+      outerwear: 'Outerwear',
+      shoes: 'Shoes',
+      accessory: 'Accessory',
+    },
+  },
+  ru: {
+    loading: 'Загрузка...',
+    loginSubtitle: 'Войдите для подбора образов по погоде из вашего гардероба.',
+    registerSubtitle: 'Создайте аккаунт и соберите свой гардероб.',
+    email: 'Эл. почта',
+    password: 'Пароль',
+    passwordHint: 'Минимум 6 символов',
+    signIn: 'Войти',
+    signUp: 'Регистрация',
+    pleaseWait: 'Подождите...',
+    haveAccount: 'Уже есть аккаунт? Войти',
+    noAccount: 'Нет аккаунта? Зарегистрироваться',
+    logout: 'Выйти',
+    liveWeatherTitle: 'Погода и умный образ',
+    gpsFinding: 'Определение по GPS...',
+    gpsFound: 'Определено по GPS',
+    gpsDenied: 'GPS отклонен (выберите город)',
+    gpsUnsupported: 'GPS не поддерживается (выбран город)',
+    citySelected: 'Выбрано из списка',
+    citySearched: 'Найдено в поиске',
+    checkingWeather: 'Проверка погоды...',
+    chooseLocation: 'Выберите город',
+    feelsLike: 'Ощущается как',
+    dailyRange: 'За день',
+    wind: 'Ветер',
+    kmh: 'км/ч',
+    gpsBtn: 'Найти по GPS',
+    searchCityPlaceholder: 'Поиск города мира (напр. Токио, Париж)...',
+    searchBtn: 'Найти',
+    searching: 'Поиск...',
+    cityNotFound: 'Город не найден, попробуйте другое название.',
+    demoMode: 'Режим погоды (Демо):',
+    generalAdviceTitle: 'Общий совет по одежде:',
+    todayOutfitTitle: 'Образ на сегодня из гардероба',
+    whyOutfit: 'Почему этот образ:',
+    defaultOutfitSub: 'Подобрано с учетом температуры, дождя и ветра',
+    allStyles: 'Все стили',
+    generateAnother: 'Другой образ',
+    saveOutfit: 'Сохранить',
+    savedToast: 'Образ добавлен в «Избранные образы»!',
+    loadedToast: 'Сохраненный образ загружен.',
+    emptyWardrobeOutfit:
+      'В гардеробе пока нет вещей. Добавьте верх, низ и обувь ниже для умного подбора!',
+    locked: 'Закреплено',
+    lock: 'Закрепить',
+    swap: 'Заменить',
+    notFoundInSlot: 'Нет вещи в этой категории',
+    warmthShort: 'Тепло',
+    totalItems: 'Всего вещей',
+    avgWarmth: 'Среднее тепло',
+    waterproofCount: 'Влагозащита',
+    piecesUnit: 'шт.',
+    savedOutfitsTitle: 'Избранные образы',
+    loadBtn: 'Загрузить',
+    deleteBtn: 'Удалить',
+    addNewItemTitle: 'Добавить вещь',
+    photoLabel: 'Фото вещи *',
+    previewReady: 'Фото выбрано',
+    categoryLabel: 'Категория *',
+    subCategoryLabel: 'Подкатегория (напр. Худи, Джинсы)',
+    subCategoryPlaceholder: 'Например: Оверсайз худи',
+    colorLabel: 'Цвет',
+    colorPlaceholder: 'Например: Черный, Бежевый, Синий',
+    styleLabel: 'Стиль',
+    warmthSlider: 'Уровень тепла (1 = тонкое, 5 = очень теплое)',
+    waterproofCheck: 'Водонепроницаемое (от дождя)',
+    windproofCheck: 'Ветрозащитное',
+    addToWardrobeBtn: 'Добавить в гардероб',
+    uploadingBtn: 'Загрузка...',
+    addedToast: 'Вещь добавлена в гардероб!',
+    myItemsTitle: 'Мои вещи',
+    allFilter: 'Все',
+    loadingWardrobe: 'Загрузка гардероба...',
+    emptyCategoryMsg: 'В этой категории пока пусто. Добавьте первую вещь выше!',
+    waterproofBadge: 'Влагозащита',
+    windproofBadge: 'Ветрозащита',
+    auto: 'Авто',
+    light: 'Светлая',
+    dark: 'Темная',
+    slotLabels: {
+      top: 'Верх',
+      bottom: 'Низ',
+      outerwear: 'Верхняя одежда',
+      shoes: 'Обувь',
+      accessory: 'Аксессуар',
+    },
+  },
+};
 
 const NEUTRAL_KEYWORDS = [
   'qara', 'ağ', 'ag', 'bej', 'boz', 'krem', 'qəhvəyi', 'qehveyi',
   'tünd göy', 'göy', 'goy', 'cins', 'xaki', 'black', 'white',
-  'beige', 'gray', 'grey', 'navy', 'brown',
+  'beige', 'gray', 'grey', 'navy', 'brown', 'черный', 'чёрный',
+  'белый', 'бежевый', 'серый', 'синий', 'коричневый',
 ];
 
 function isNeutralColor(colorStr) {
@@ -107,31 +380,67 @@ function getColorHarmonyBonus(colorA, colorB) {
   return 4;
 }
 
-function findNearestCity(lat, lon) {
-  let nearest = AZERBAIJAN_CITIES[0];
+function findNearestCity(lat, lon, lang = 'az') {
+  let nearest = WORLD_CITIES[0];
   let minDist = Infinity;
-  for (const city of AZERBAIJAN_CITIES) {
+  for (const city of WORLD_CITIES) {
     const d = Math.hypot(city.lat - lat, city.lon - lon);
     if (d < minDist) {
       minDist = d;
       nearest = city;
     }
   }
-  return minDist < 1.5 ? nearest.name : `GPS Məkanı (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
+  if (minDist < 1.2) return nearest.name;
+  const prefix = lang === 'en' ? 'GPS Location' : lang === 'ru' ? 'GPS точка' : 'GPS Məkanı';
+  return `${prefix} (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
 }
 
-function interpretWeather(code, temp, windSpeed, hourlyForecast = null) {
+function interpretWeather(code, temp, windSpeed, hourlyForecast = null, lang = 'az') {
   const isRainy =
     [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(code);
   const isSnowy = [71, 73, 75, 77, 85, 86].includes(code);
   const isWindy = windSpeed >= 25;
 
-  let conditionText = 'Açıq / Buludlu';
-  if (isSnowy) conditionText = 'Qarlı';
-  else if (isRainy) conditionText = 'Yağışlı';
-  else if (code === 45 || code === 48) conditionText = 'Dumanlı';
-  else if (code === 0) conditionText = 'Günəşli və açıq';
-  else if ([1, 2, 3].includes(code)) conditionText = 'Dəyişkən buludlu';
+  const condMap = {
+    az: {
+      snow: 'Qarlı',
+      rain: 'Yağışlı',
+      fog: 'Dumanlı',
+      clear: 'Günəşli və açıq',
+      clouds: 'Dəyişkən buludlu',
+      default: 'Açıq / Buludlu',
+    },
+    en: {
+      snow: 'Snowy',
+      rain: 'Rainy',
+      fog: 'Foggy',
+      clear: 'Sunny & clear',
+      clouds: 'Partly cloudy',
+      default: 'Clear / Cloudy',
+    },
+    ru: {
+      snow: 'Снежно',
+      rain: 'Дождливо',
+      fog: 'Туман',
+      clear: 'Ясно и солнечно',
+      clouds: 'Переменная облачность',
+      default: 'Ясно / Облачно',
+    },
+  }[lang] || {
+    snow: 'Qarlı',
+    rain: 'Yağışlı',
+    fog: 'Dumanlı',
+    clear: 'Günəşli və açıq',
+    clouds: 'Dəyişkən buludlu',
+    default: 'Açıq / Buludlu',
+  };
+
+  let conditionText = condMap.default;
+  if (isSnowy) conditionText = condMap.snow;
+  else if (isRainy) conditionText = condMap.rain;
+  else if (code === 45 || code === 48) conditionText = condMap.fog;
+  else if (code === 0) conditionText = condMap.clear;
+  else if ([1, 2, 3].includes(code)) conditionText = condMap.clouds;
 
   let idealWarmth = 3;
   if (temp <= 4) idealWarmth = 5;
@@ -141,23 +450,33 @@ function interpretWeather(code, temp, windSpeed, hourlyForecast = null) {
   else idealWarmth = 1;
 
   const tips = [];
-  if (temp <= 5) {
-    tips.push('Hava çox soyuqdur: qalın palto/gödəkçə, sviter və qapalı isti ayaqqabı seç.');
-  } else if (temp <= 12) {
-    tips.push('Hava sərindir: qat-qat geyim (köynək/hudi + gödəkçə) ən ideal seçimdir.');
-  } else if (temp <= 19) {
-    tips.push('Mülayim hava var: yüngül üst geyim və nazik pencək/jaket kifayət edər.');
-  } else if (temp <= 26) {
-    tips.push('İsti və komfortlu havadır: nəfəs alan pambıq/kətan köynək və rahat şalvar uyğundur.');
-  } else {
-    tips.push('Çox isti havadır: açıq rəngli, çox nazik (istilik 1-2) parçalara üstünlük ver.');
-  }
+  if (lang === 'en') {
+    if (temp <= 5) tips.push('Very cold: pick a heavy coat/jacket, knitwear, and warm closed shoes.');
+    else if (temp <= 12) tips.push('Chilly weather: layering (tee/hoodie + jacket) works best.');
+    else if (temp <= 19) tips.push('Mild weather: a light top and thin jacket or overshirt is enough.');
+    else if (temp <= 26) tips.push('Warm & pleasant: breathable cotton/linen top and comfortable pants fit well.');
+    else tips.push('Very hot: prefer light colors and thin (warmth 1–2) breathable fabrics.');
 
-  if (isRainy || isSnowy) {
-    tips.push('Yağıntı var: suya davamlı üst örtük və ayaqqabı götürməyi unutma.');
-  }
-  if (isWindy) {
-    tips.push(`Külək güclüdür (${Math.round(windSpeed)} km/saat): küləyə davamlı gödəkçə geyin.`);
+    if (isRainy || isSnowy) tips.push("Precipitation expected: don't forget waterproof outerwear and shoes.");
+    if (isWindy) tips.push(`Strong wind (${Math.round(windSpeed)} km/h): wear a windproof layer.`);
+  } else if (lang === 'ru') {
+    if (temp <= 5) tips.push('Очень холодно: выберите теплый пуховик/пальто, свитер и закрытую обувь.');
+    else if (temp <= 12) tips.push('Прохладно: лучше всего подойдет многослойность (худи/рубашка + куртка).');
+    else if (temp <= 19) tips.push('Умеренная погода: хватит легкого верха и тонкой куртки или жакета.');
+    else if (temp <= 26) tips.push('Тепло и комфортно: подойдут дышащие ткани и удобные брюки.');
+    else tips.push('Очень жарко: выбирайте светлые оттенки и тонкие ткани (тепло 1–2).');
+
+    if (isRainy || isSnowy) tips.push('Осадки: возьмите влагозащитную верхнюю одежду и обувь.');
+    if (isWindy) tips.push(`Сильный ветер (${Math.round(windSpeed)} км/ч): наденьте ветрозащитный слой.`);
+  } else {
+    if (temp <= 5) tips.push('Hava çox soyuqdur: qalın palto/gödəkçə, sviter və qapalı isti ayaqqabı seç.');
+    else if (temp <= 12) tips.push('Hava sərindir: qat-qat geyim (köynək/hudi + gödəkçə) ən ideal seçimdir.');
+    else if (temp <= 19) tips.push('Mülayim hava var: yüngül üst geyim və nazik pencək/jaket kifayət edər.');
+    else if (temp <= 26) tips.push('İsti və komfortlu havadır: nəfəs alan pambıq/kətan köynək və rahat şalvar uyğundur.');
+    else tips.push('Çox isti havadır: açıq rəngli, çox nazik (istilik 1-2) parçalara üstünlük ver.');
+
+    if (isRainy || isSnowy) tips.push('Yağıntı var: suya davamlı üst örtük və ayaqqabı götürməyi unutma.');
+    if (isWindy) tips.push(`Külək güclüdür (${Math.round(windSpeed)} km/saat): küləyə davamlı gödəkçə geyin.`);
   }
 
   let eveningAlert = null;
@@ -166,9 +485,21 @@ function interpretWeather(code, temp, windSpeed, hourlyForecast = null) {
     const { minTemp, rainProb } = hourlyForecast;
     if (temp - minTemp >= 6 && minTemp <= 14) {
       eveningCoolDrop = true;
-      eveningAlert = `Axşam temperatur ${minTemp}°C-yə qədər düşəcək — çölə çıxanda üst örtük götürməyin məsləhətdir.`;
+      if (lang === 'en') {
+        eveningAlert = `Temperature will drop to ${minTemp}°C in the evening — taking an outer layer is recommended.`;
+      } else if (lang === 'ru') {
+        eveningAlert = `Вечером температура опустится до ${minTemp}°C — стоит взять верхнюю одежду.`;
+      } else {
+        eveningAlert = `Axşam temperatur ${minTemp}°C-yə qədər düşəcək — çölə çıxanda üst örtük götürməyin məsləhətdir.`;
+      }
     } else if (!isRainy && rainProb >= 55) {
-      eveningAlert = `Gün ərzində yağıntı ehtimalı ${rainProb}%-dir — suya davamlı parça seçmək faydalı olar.`;
+      if (lang === 'en') {
+        eveningAlert = `Precipitation chance today is ${rainProb}% — a waterproof piece is helpful.`;
+      } else if (lang === 'ru') {
+        eveningAlert = `Вероятность осадков за день ${rainProb}% — пригодится влагозащита.`;
+      } else {
+        eveningAlert = `Gün ərzində yağıntı ehtimalı ${rainProb}%-dir — suya davamlı parça seçmək faydalı olar.`;
+      }
     }
   }
 
@@ -185,7 +516,7 @@ function interpretWeather(code, temp, windSpeed, hourlyForecast = null) {
   };
 }
 
-function buildOutfitExplanation(outfit, weatherInfo) {
+function buildOutfitExplanation(outfit, weatherInfo, lang = 'az') {
   if (!outfit || !weatherInfo) return '';
   const selected = [
     outfit.top,
@@ -196,24 +527,30 @@ function buildOutfitExplanation(outfit, weatherInfo) {
   ].filter(Boolean);
   if (selected.length === 0) return '';
 
-  const reasons = [];
-  reasons.push(`${weatherInfo.temp}°C hava üçün ideal istilik (${weatherInfo.idealWarmth}/5) hədəfləndi`);
-
   const hasWaterproof = selected.some((i) => i.waterproof);
   const hasWindproof = selected.some((i) => i.windproof);
-
-  if (weatherInfo.isRainy && hasWaterproof) {
-    reasons.push('yağışa qarşı suya davamlı parça seçildi');
-  }
-  if (weatherInfo.isWindy && hasWindproof) {
-    reasons.push('küləyə davamlı qoruma əlavə edildi');
-  }
-
   const colors = selected.map((i) => i.color).filter(Boolean);
-  if (colors.length >= 2) {
-    reasons.push(`${colors.slice(0, 3).join(' + ')} rəng harmoniyası uyğunlaşdırıldı`);
+
+  if (lang === 'en') {
+    const reasons = [`targeted warmth (${weatherInfo.idealWarmth}/5) for ${weatherInfo.temp}°C`];
+    if (weatherInfo.isRainy && hasWaterproof) reasons.push('added waterproof protection');
+    if (weatherInfo.isWindy && hasWindproof) reasons.push('added windproof protection');
+    if (colors.length >= 2) reasons.push(`balanced ${colors.slice(0, 3).join(' + ')} colors`);
+    return reasons.join(', ') + '.';
   }
 
+  if (lang === 'ru') {
+    const reasons = [`учтен уровень тепла (${weatherInfo.idealWarmth}/5) для ${weatherInfo.temp}°C`];
+    if (weatherInfo.isRainy && hasWaterproof) reasons.push('добавлена влагозащита');
+    if (weatherInfo.isWindy && hasWindproof) reasons.push('добавлена ветрозащита');
+    if (colors.length >= 2) reasons.push(`сочетание цветов ${colors.slice(0, 3).join(' + ')}`);
+    return reasons.join(', ') + '.';
+  }
+
+  const reasons = [`${weatherInfo.temp}°C hava üçün ideal istilik (${weatherInfo.idealWarmth}/5) hədəfləndi`];
+  if (weatherInfo.isRainy && hasWaterproof) reasons.push('yağışa qarşı suya davamlı parça seçildi');
+  if (weatherInfo.isWindy && hasWindproof) reasons.push('küləyə davamlı qoruma əlavə edildi');
+  if (colors.length >= 2) reasons.push(`${colors.slice(0, 3).join(' + ')} rəng harmoniyası uyğunlaşdırıldı`);
   return reasons.join(', ') + '.';
 }
 
@@ -223,7 +560,8 @@ function buildSmartOutfit(
   preferredStyle = 'all',
   lockedSlots = {},
   currentOutfit = null,
-  excludeIdsBySlot = {}
+  excludeIdsBySlot = {},
+  lang = 'az'
 ) {
   if (!items || items.length === 0 || !weatherInfo) return null;
 
@@ -242,23 +580,13 @@ function buildSmartOutfit(
 
     const scored = candidates.map((item) => {
       let score = 0;
-
       const diff = Math.abs((item.warmth_level || 3) - weatherInfo.idealWarmth);
       score += Math.max(0, 50 - diff * 15);
-
       if (weatherInfo.isRainy && item.waterproof) score += 25;
       if (weatherInfo.isWindy && item.windproof) score += 20;
-
-      if (preferredStyle !== 'all' && item.style === preferredStyle) {
-        score += 20;
-      }
-
-      if (anchorColor) {
-        score += getColorHarmonyBonus(anchorColor, item.color);
-      }
-
+      if (preferredStyle !== 'all' && item.style === preferredStyle) score += 20;
+      if (anchorColor) score += getColorHarmonyBonus(anchorColor, item.color);
       score += Math.random() * 18;
-
       return { item, score };
     });
 
@@ -268,7 +596,6 @@ function buildSmartOutfit(
 
   const top = pickBestForCategory('top', 'Üst geyim');
   const anchorColor = top?.color || null;
-
   const bottom = pickBestForCategory('bottom', 'Alt geyim', anchorColor);
   const outerwear =
     weatherInfo.needOuterwear || (lockedSlots.outerwear && currentOutfit?.outerwear)
@@ -278,7 +605,7 @@ function buildSmartOutfit(
   const accessory = pickBestForCategory('accessory', 'Aksesuar', anchorColor);
 
   const nextOutfit = { top, bottom, outerwear, shoes, accessory };
-  nextOutfit.explanation = buildOutfitExplanation(nextOutfit, weatherInfo);
+  nextOutfit.explanation = buildOutfitExplanation(nextOutfit, weatherInfo, lang);
   return nextOutfit;
 }
 
@@ -286,6 +613,10 @@ export default function HomePage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRegister, setIsRegister] = useState(false);
+
+  // Language state: 'az' | 'en' | 'ru'
+  const [lang, setLang] = useState('az');
+  const tx = UI_TEXT[lang] || UI_TEXT.az;
 
   // Theme state: 'auto' | 'light' | 'dark'
   const [themeMode, setThemeMode] = useState('auto');
@@ -315,10 +646,13 @@ export default function HomePage() {
   const [windproof, setWindproof] = useState(false);
   const [style, setStyle] = useState('gundelik');
 
-  // Weather & Outfit state
+  // Weather & World City Search state
   const [selectedCity, setSelectedCity] = useState('Bakı');
-  const [locationSource, setLocationSource] = useState('Avtomatik axtarılır...');
-  const [liveWeather, setLiveWeather] = useState(null);
+  const [citySearchQuery, setCitySearchQuery] = useState('');
+  const [searchingCity, setSearchingCity] = useState(false);
+  const [locationSource, setLocationSource] = useState(UI_TEXT.az.gpsFinding);
+  const [lastCoords, setLastCoords] = useState({ lat: 40.4093, lon: 49.8671, label: 'Bakı' });
+  const [liveRawWeather, setLiveRawWeather] = useState(null);
   const [demoPresetId, setDemoPresetId] = useState('live');
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [outfitStyleFilter, setOutfitStyleFilter] = useState('all');
@@ -327,13 +661,16 @@ export default function HomePage() {
   const [lockedSlots, setLockedSlots] = useState({});
   const [savedOutfits, setSavedOutfits] = useState([]);
 
-  // Detect OS / phone color scheme & saved theme preference
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       const savedTheme = localStorage.getItem('geyin_theme_mode');
       if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'auto') {
         setThemeMode(savedTheme);
+      }
+      const savedLang = localStorage.getItem('geyin_lang');
+      if (savedLang === 'az' || savedLang === 'en' || savedLang === 'ru') {
+        setLang(savedLang);
       }
     } catch {
       // ignore
@@ -356,9 +693,17 @@ export default function HomePage() {
     }
   };
 
+  const handleSelectLang = (nextLang) => {
+    setLang(nextLang);
+    try {
+      localStorage.setItem('geyin_lang', nextLang);
+    } catch {
+      // ignore
+    }
+  };
+
   const isDark = themeMode === 'dark' || (themeMode === 'auto' && systemPrefersDark);
 
-  // Image file preview cleanup
   useEffect(() => {
     if (!imageFile) {
       setImagePreviewUrl('');
@@ -370,22 +715,47 @@ export default function HomePage() {
   }, [imageFile]);
 
   const activeWeather = useMemo(() => {
-    if (demoPresetId === 'live') return liveWeather;
+    if (demoPresetId === 'live') {
+      if (!liveRawWeather) return null;
+      const info = interpretWeather(
+        liveRawWeather.code,
+        liveRawWeather.temp,
+        liveRawWeather.wind,
+        liveRawWeather.hourlyForecast,
+        lang
+      );
+      return {
+        locationName: liveRawWeather.locationName,
+        temp: liveRawWeather.temp,
+        apparent: liveRawWeather.apparent,
+        wind: liveRawWeather.wind,
+        ...info,
+      };
+    }
+
     const preset = DEMO_PRESETS.find((p) => p.id === demoPresetId);
-    if (!preset) return liveWeather;
-    const info = interpretWeather(preset.code, preset.temp, preset.wind, {
-      minTemp: preset.minTemp,
-      maxTemp: preset.maxTemp,
-      rainProb: preset.rainProb,
-    });
+    if (!preset) return null;
+    const info = interpretWeather(
+      preset.code,
+      preset.temp,
+      preset.wind,
+      {
+        minTemp: preset.minTemp,
+        maxTemp: preset.maxTemp,
+        rainProb: preset.rainProb,
+      },
+      lang
+    );
+    const demoSuffix =
+      lang === 'en' ? '(Demo)' : lang === 'ru' ? '(Демо)' : '(Demo Simulyasiya)';
     return {
-      locationName: `${liveWeather?.locationName || selectedCity} (Demo Simulyasiya)`,
+      locationName: `${liveRawWeather?.locationName || selectedCity} ${demoSuffix}`,
       temp: preset.temp,
       apparent: preset.apparent,
       wind: preset.wind,
       ...info,
     };
-  }, [demoPresetId, liveWeather, selectedCity]);
+  }, [demoPresetId, liveRawWeather, selectedCity, lang]);
 
   const wardrobeInsights = useMemo(() => {
     if (!items || items.length === 0) return null;
@@ -398,12 +768,27 @@ export default function HomePage() {
       (cat) => cat !== 'Aksesuar' && !items.some((i) => i.category === cat)
     );
 
-    let suggestion = 'Qarderobun bütün əsas kateqoriyalar üzrə balanslıdır.';
+    let suggestion =
+      lang === 'en'
+        ? 'Your wardrobe is balanced across core categories.'
+        : lang === 'ru'
+        ? 'Гардероб сбалансирован по основным категориям.'
+        : 'Qarderobun bütün əsas kateqoriyalar üzrə balanslıdır.';
+
     if (missingCategories.length > 0) {
-      suggestion = `Tam kombinlər üçün çatışmayan kateqoriya: ${missingCategories.join(', ')}.`;
+      suggestion =
+        lang === 'en'
+          ? `Missing categories for full outfits: ${missingCategories.join(', ')}.`
+          : lang === 'ru'
+          ? `Не хватает категорий для полного образа: ${missingCategories.join(', ')}.`
+          : `Tam kombinlər üçün çatışmayan kateqoriya: ${missingCategories.join(', ')}.`;
     } else if (!hasWaterproof) {
       suggestion =
-        'Yağışlı günlər üçün qarderobuna ən azı 1 suya davamlı üst örtük və ya ayaqqabı əlavə etməyin tövsiyə olunur.';
+        lang === 'en'
+          ? 'Consider adding at least 1 waterproof outer layer or shoe for rainy days.'
+          : lang === 'ru'
+          ? 'Добавьте хотя бы 1 влагозащитную вещь для дождливых дней.'
+          : 'Yağışlı günlər üçün qarderobuna ən azı 1 suya davamlı üst örtük və ya ayaqqabı əlavə etməyin tövsiyə olunur.';
     }
 
     return {
@@ -412,21 +797,17 @@ export default function HomePage() {
       waterproofCount: items.filter((i) => i.waterproof).length,
       suggestion,
     };
-  }, [items]);
+  }, [items, lang]);
 
   const fetchWeatherByCoords = useCallback(async (lat, lon, label) => {
     setLoadingWeather(true);
+    setLastCoords({ lat, lon, label });
     try {
       const res = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability&forecast_days=1&timezone=auto`
       );
       const data = await res.json();
       if (data?.current) {
-        const temp = Math.round(data.current.temperature_2m);
-        const apparent = Math.round(data.current.apparent_temperature);
-        const wind = data.current.wind_speed_10m;
-        const code = data.current.weather_code;
-
         let hourlyForecast = null;
         if (data?.hourly?.temperature_2m?.length) {
           const temps = data.hourly.temperature_2m;
@@ -438,14 +819,13 @@ export default function HomePage() {
           };
         }
 
-        const info = interpretWeather(code, temp, wind, hourlyForecast);
-
-        setLiveWeather({
+        setLiveRawWeather({
           locationName: label,
-          temp,
-          apparent,
-          wind,
-          ...info,
+          temp: Math.round(data.current.temperature_2m),
+          apparent: Math.round(data.current.apparent_temperature),
+          wind: data.current.wind_speed_10m,
+          code: data.current.weather_code,
+          hourlyForecast,
         });
       }
     } catch {
@@ -458,39 +838,69 @@ export default function HomePage() {
   const detectGpsLocation = useCallback(() => {
     setDemoPresetId('live');
     if (typeof window === 'undefined' || !navigator.geolocation) {
-      setLocationSource('GPS dəstəklənmir (şəhər seçildi)');
-      const fallback = AZERBAIJAN_CITIES[0];
+      setLocationSource(tx.gpsUnsupported);
+      const fallback = WORLD_CITIES[0];
       fetchWeatherByCoords(fallback.lat, fallback.lon, fallback.name);
       return;
     }
 
-    setLocationSource('GPS ilə məkan tapılır...');
+    setLocationSource(tx.gpsFinding);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        const nearestName = findNearestCity(latitude, longitude);
-        const matchedCity = AZERBAIJAN_CITIES.find((c) => c.name === nearestName);
+        const nearestName = findNearestCity(latitude, longitude, lang);
+        const matchedCity = WORLD_CITIES.find((c) => c.name === nearestName);
         if (matchedCity) setSelectedCity(matchedCity.name);
-        setLocationSource('GPS ilə tapıldı');
+        setLocationSource(tx.gpsFound);
         fetchWeatherByCoords(latitude, longitude, nearestName);
       },
       () => {
-        setLocationSource('GPS icazəsi verilmədi (siyahıdan seçin)');
+        setLocationSource(tx.gpsDenied);
         const fallback =
-          AZERBAIJAN_CITIES.find((c) => c.name === selectedCity) || AZERBAIJAN_CITIES[0];
+          WORLD_CITIES.find((c) => c.name === selectedCity) || WORLD_CITIES[0];
         fetchWeatherByCoords(fallback.lat, fallback.lon, fallback.name);
       },
       { timeout: 8000 }
     );
-  }, [fetchWeatherByCoords, selectedCity]);
+  }, [fetchWeatherByCoords, selectedCity, tx, lang]);
 
   const handleCitySelect = (cityName) => {
     setDemoPresetId('live');
     setSelectedCity(cityName);
-    const cityObj = AZERBAIJAN_CITIES.find((c) => c.name === cityName);
+    const cityObj = WORLD_CITIES.find((c) => c.name === cityName);
     if (cityObj) {
-      setLocationSource('Siyahıdan seçildi');
+      setLocationSource(tx.citySelected);
       fetchWeatherByCoords(cityObj.lat, cityObj.lon, cityObj.name);
+    }
+  };
+
+  const handleWorldCitySearch = async (e) => {
+    e.preventDefault();
+    const q = citySearchQuery.trim();
+    if (!q) return;
+    setSearchingCity(true);
+    setError('');
+    try {
+      const geoRes = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+          q
+        )}&count=1&language=${lang === 'ru' ? 'ru' : lang === 'en' ? 'en' : 'en'}&format=json`
+      );
+      const geoData = await geoRes.json();
+      const place = geoData?.results?.[0];
+      if (!place) {
+        setError(tx.cityNotFound);
+        return;
+      }
+      const displayLabel = place.country ? `${place.name}, ${place.country}` : place.name;
+      setDemoPresetId('live');
+      setLocationSource(tx.citySearched);
+      setCitySearchQuery('');
+      await fetchWeatherByCoords(place.latitude, place.longitude, displayLabel);
+    } catch {
+      setError(tx.cityNotFound);
+    } finally {
+      setSearchingCity(false);
     }
   };
 
@@ -534,18 +944,18 @@ export default function HomePage() {
   useEffect(() => {
     if (activeWeather && items.length > 0) {
       setRecommendedOutfit((prev) =>
-        buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev)
+        buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev, {}, lang)
       );
       setOutfitAnimKey((k) => k + 1);
     } else {
       setRecommendedOutfit(null);
     }
-  }, [activeWeather, items, outfitStyleFilter]);
+  }, [activeWeather, items, outfitStyleFilter, lang]);
 
   const handleRegenerateOutfit = () => {
     if (!activeWeather || items.length === 0) return;
     setRecommendedOutfit((prev) =>
-      buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev)
+      buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev, {}, lang)
     );
     setOutfitAnimKey((k) => k + 1);
   };
@@ -576,7 +986,8 @@ export default function HomePage() {
       outfitStyleFilter,
       tempLocks,
       recommendedOutfit,
-      excludeMap
+      excludeMap,
+      lang
     );
     setRecommendedOutfit(updated);
     setOutfitAnimKey((k) => k + 1);
@@ -596,11 +1007,10 @@ export default function HomePage() {
 
     const newSaved = {
       id: Date.now(),
-      createdAt: new Date().toLocaleDateString('az-AZ'),
+      createdAt: new Date().toLocaleDateString(),
       city: activeWeather.locationName,
       temp: activeWeather.temp,
       condition: activeWeather.conditionText,
-      explanation: recommendedOutfit.explanation || '',
       outfitData: {
         top: recommendedOutfit.top,
         bottom: recommendedOutfit.bottom,
@@ -619,14 +1029,14 @@ export default function HomePage() {
     } catch {
       // ignore
     }
-    setMessage('Kombin "Sevimli kombinlərim" bölməsinə əlavə olundu!');
+    setMessage(tx.savedToast);
   };
 
   const handleLoadSavedOutfit = (saved) => {
     if (!saved?.outfitData) return;
     setRecommendedOutfit(saved.outfitData);
     setOutfitAnimKey((k) => k + 1);
-    setMessage('Sevimli kombin əsas sahəyə yükləndi.');
+    setMessage(tx.loadedToast);
   };
 
   const handleDeleteSavedOutfit = (savedId) => {
@@ -664,12 +1074,9 @@ export default function HomePage() {
 
     try {
       if (isRegister) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+        const { error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) throw signUpError;
-        setMessage('Qeydiyyat uğurludur! İndi daxil ola bilərsən.');
+        setMessage('OK');
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -678,7 +1085,7 @@ export default function HomePage() {
         if (signInError) throw signInError;
       }
     } catch (err) {
-      setError(err.message || 'Xəta baş verdi.');
+      setError(err.message || 'Error');
     } finally {
       setSubmitting(false);
     }
@@ -697,7 +1104,7 @@ export default function HomePage() {
     setMessage('');
 
     if (!imageFile) {
-      setError('Zəhmət olmasa paltar şəkli seç.');
+      setError(tx.photoLabel);
       return;
     }
 
@@ -737,7 +1144,7 @@ export default function HomePage() {
 
       if (insertError) throw insertError;
 
-      setMessage('Paltar qarderoba əlavə olundu!');
+      setMessage(tx.addedToast);
       setImageFile(null);
       setSubCategory('');
       setColor('');
@@ -751,7 +1158,7 @@ export default function HomePage() {
 
       await fetchItems(user.id);
     } catch (err) {
-      setError(err.message || 'Şəkil yüklənərkən və ya saxlanılarkən xəta baş verdi.');
+      setError(err.message || 'Error');
     } finally {
       setUploading(false);
     }
@@ -777,11 +1184,10 @@ export default function HomePage() {
 
       setItems((prev) => prev.filter((i) => i.id !== item.id));
     } catch (err) {
-      setError(err.message || 'Silinmə zamanı xəta baş verdi.');
+      setError(err.message || 'Error');
     }
   };
 
-  // Dynamic theme tokens
   const t = {
     page: isDark ? 'bg-zinc-950 text-white' : 'bg-stone-100 text-zinc-900',
     card: isDark
@@ -799,44 +1205,69 @@ export default function HomePage() {
     pillIdle: isDark
       ? 'bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800'
       : 'bg-white text-zinc-600 hover:text-zinc-900 border-stone-200',
-    pillActive: isDark
-      ? 'bg-white text-zinc-950'
-      : 'bg-zinc-900 text-white',
+    pillActive: isDark ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white',
   };
 
-  const renderThemeSwitcher = () => (
-    <div
-      className={`inline-flex items-center rounded-xl p-1 border text-xs ${
-        isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-stone-200/70 border-stone-300'
-      }`}
-    >
-      {[
-        { id: 'auto', label: 'Avto' },
-        { id: 'light', label: 'Açıq' },
-        { id: 'dark', label: 'Qaranlıq' },
-      ].map((m) => (
-        <button
-          key={m.id}
-          type="button"
-          onClick={() => handleSelectTheme(m.id)}
-          className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer active:scale-95 ${
-            themeMode === m.id
-              ? isDark
-                ? 'bg-white text-zinc-950 shadow-xs'
-                : 'bg-white text-zinc-900 shadow-xs'
-              : t.muted
-          }`}
-        >
-          {m.label}
-        </button>
-      ))}
+  const renderTopControls = () => (
+    <div className="flex flex-wrap items-center gap-2">
+      {/* Language Switcher */}
+      <div
+        className={`inline-flex items-center rounded-xl p-1 border text-xs ${
+          isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-stone-200/70 border-stone-300'
+        }`}
+      >
+        {[
+          { id: 'az', label: 'AZ' },
+          { id: 'en', label: 'EN' },
+          { id: 'ru', label: 'RU' },
+        ].map((l) => (
+          <button
+            key={l.id}
+            type="button"
+            onClick={() => handleSelectLang(l.id)}
+            className={`px-2 py-1 rounded-lg font-semibold transition cursor-pointer active:scale-95 ${
+              lang === l.id ? 'bg-sky-500 text-white shadow-xs' : t.muted
+            }`}
+          >
+            {l.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Theme Switcher */}
+      <div
+        className={`inline-flex items-center rounded-xl p-1 border text-xs ${
+          isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-stone-200/70 border-stone-300'
+        }`}
+      >
+        {[
+          { id: 'auto', label: tx.auto },
+          { id: 'light', label: tx.light },
+          { id: 'dark', label: tx.dark },
+        ].map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            onClick={() => handleSelectTheme(m.id)}
+            className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer active:scale-95 ${
+              themeMode === m.id
+                ? isDark
+                  ? 'bg-white text-zinc-950 shadow-xs'
+                  : 'bg-white text-zinc-900 shadow-xs'
+                : t.muted
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 
   if (loading) {
     return (
       <main className={`min-h-screen ${t.page} flex items-center justify-center transition-colors duration-300`}>
-        <p className={`${t.muted} animate-pulse`}>Yüklənir...</p>
+        <p className={`${t.muted} animate-pulse`}>{tx.loading}</p>
       </main>
     );
   }
@@ -845,40 +1276,38 @@ export default function HomePage() {
     return (
       <main className={`min-h-screen ${t.page} flex items-center justify-center p-6 transition-colors duration-300`}>
         <div className={`w-full max-w-md rounded-2xl ${t.card} border p-6 space-y-6 animate-outfit-in`}>
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Geyin</h1>
               <p className={`text-sm ${t.muted} mt-1`}>
-                {isRegister
-                  ? 'Yeni hesab yarat və qarderobunu qur.'
-                  : 'Hava şəraitinə uyğun kombinlər üçün hesabına daxil ol.'}
+                {isRegister ? tx.registerSubtitle : tx.loginSubtitle}
               </p>
             </div>
-            {renderThemeSwitcher()}
+            {renderTopControls()}
           </div>
 
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
-              <label className={`block text-sm ${t.subtext} mb-1.5`}>E-poçt</label>
+              <label className={`block text-sm ${t.subtext} mb-1.5`}>{tx.email}</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nümunə@mail.com"
+                placeholder="name@example.com"
                 className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               />
             </div>
 
             <div>
-              <label className={`block text-sm ${t.subtext} mb-1.5`}>Şifrə</label>
+              <label className={`block text-sm ${t.subtext} mb-1.5`}>{tx.password}</label>
               <input
                 type="password"
                 required
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Ən az 6 simvol"
+                placeholder={tx.passwordHint}
                 className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               />
             </div>
@@ -900,11 +1329,7 @@ export default function HomePage() {
               disabled={submitting}
               className={`w-full rounded-xl ${t.pillActive} disabled:opacity-50 font-semibold py-2.5 text-sm transition cursor-pointer active:scale-[0.98]`}
             >
-              {submitting
-                ? 'Gözləyin...'
-                : isRegister
-                ? 'Qeydiyyatdan keç'
-                : 'Daxil ol'}
+              {submitting ? tx.pleaseWait : isRegister ? tx.signUp : tx.signIn}
             </button>
           </form>
 
@@ -918,9 +1343,7 @@ export default function HomePage() {
               }}
               className={`text-xs ${t.muted} transition cursor-pointer`}
             >
-              {isRegister
-                ? 'Artıq hesabın var? Daxil ol'
-                : 'Hesabın yoxdur? Yeni hesab yarat'}
+              {isRegister ? tx.haveAccount : tx.noAccount}
             </button>
           </div>
         </div>
@@ -935,14 +1358,14 @@ export default function HomePage() {
 
   const outfitSlots = recommendedOutfit
     ? [
-        { key: 'top', label: 'Üst geyim', item: recommendedOutfit.top },
-        { key: 'bottom', label: 'Alt geyim', item: recommendedOutfit.bottom },
+        { key: 'top', label: tx.slotLabels.top, item: recommendedOutfit.top },
+        { key: 'bottom', label: tx.slotLabels.bottom, item: recommendedOutfit.bottom },
         ...(recommendedOutfit.outerwear || lockedSlots.outerwear
-          ? [{ key: 'outerwear', label: 'Üst örtük', item: recommendedOutfit.outerwear }]
+          ? [{ key: 'outerwear', label: tx.slotLabels.outerwear, item: recommendedOutfit.outerwear }]
           : []),
-        { key: 'shoes', label: 'Ayaqqabı', item: recommendedOutfit.shoes },
+        { key: 'shoes', label: tx.slotLabels.shoes, item: recommendedOutfit.shoes },
         ...(recommendedOutfit.accessory || lockedSlots.accessory
-          ? [{ key: 'accessory', label: 'Aksesuar', item: recommendedOutfit.accessory }]
+          ? [{ key: 'accessory', label: tx.slotLabels.accessory, item: recommendedOutfit.accessory }]
           : []),
       ]
     : [];
@@ -957,12 +1380,12 @@ export default function HomePage() {
             <p className={`text-xs ${t.muted} mt-1`}>{user.email}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
-            {renderThemeSwitcher()}
+            {renderTopControls()}
             <button
               onClick={handleLogout}
               className={`rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
             >
-              Çıxış et
+              {tx.logout}
             </button>
           </div>
         </header>
@@ -984,19 +1407,20 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <span className={`text-[11px] uppercase tracking-wider ${t.muted}`}>
-                Canlı Hava & Ağıllı Kombin • {locationSource}
+                {tx.liveWeatherTitle} • {locationSource}
               </span>
               <h2 className="text-xl font-bold mt-1">
                 {loadingWeather && demoPresetId === 'live'
-                  ? 'Hava yoxlanılır...'
+                  ? tx.checkingWeather
                   : activeWeather
                   ? `${activeWeather.locationName}: ${activeWeather.temp}°C (${activeWeather.conditionText})`
-                  : 'Məkan seçin'}
+                  : tx.chooseLocation}
               </h2>
               {activeWeather && (
                 <p className={`text-xs ${t.muted} mt-1`}>
-                  Hiss olunan: {activeWeather.apparent}°C • Günlük: {activeWeather.minTemp}°C /{' '}
-                  {activeWeather.maxTemp}°C • Külək: {Math.round(activeWeather.wind)} km/saat
+                  {tx.feelsLike}: {activeWeather.apparent}°C • {tx.dailyRange}:{' '}
+                  {activeWeather.minTemp}°C / {activeWeather.maxTemp}°C • {tx.wind}:{' '}
+                  {Math.round(activeWeather.wind)} {tx.kmh}
                 </p>
               )}
             </div>
@@ -1007,7 +1431,7 @@ export default function HomePage() {
                 onClick={detectGpsLocation}
                 className={`rounded-xl ${t.pillActive} px-3.5 py-2 text-xs font-semibold transition cursor-pointer active:scale-95`}
               >
-                GPS ilə tap
+                {tx.gpsBtn}
               </button>
 
               <select
@@ -1015,18 +1439,36 @@ export default function HomePage() {
                 onChange={(e) => handleCitySelect(e.target.value)}
                 className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
               >
-                {AZERBAIJAN_CITIES.map((city) => (
-                  <option key={city.name} value={city.name}>
-                    {city.name}
+                {WORLD_CITIES.map((city) => (
+                  <option key={`${city.name}-${city.country}`} value={city.name}>
+                    {city.name} ({city.country})
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
+          {/* World City Search */}
+          <form onSubmit={handleWorldCitySearch} className="flex flex-wrap gap-2">
+            <input
+              type="text"
+              value={citySearchQuery}
+              onChange={(e) => setCitySearchQuery(e.target.value)}
+              placeholder={tx.searchCityPlaceholder}
+              className={`flex-1 min-w-[210px] rounded-xl ${t.surface} border px-3.5 py-2 text-xs focus:outline-none`}
+            />
+            <button
+              type="submit"
+              disabled={searchingCity}
+              className={`rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
+            >
+              {searchingCity ? tx.searching : tx.searchBtn}
+            </button>
+          </form>
+
           {/* Demo Day Weather Simulator bar */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className={`text-[11px] ${t.muted} mr-1`}>Hava rejimi (Demo test):</span>
+            <span className={`text-[11px] ${t.muted} mr-1`}>{tx.demoMode}</span>
             {DEMO_PRESETS.map((preset) => (
               <button
                 key={preset.id}
@@ -1038,7 +1480,7 @@ export default function HomePage() {
                     : `${t.pillIdle} border`
                 }`}
               >
-                {preset.label}
+                {preset.label[lang] || preset.label.az}
               </button>
             ))}
           </div>
@@ -1048,7 +1490,7 @@ export default function HomePage() {
             <div className="space-y-2.5">
               <div className={`rounded-xl ${t.surface} border p-4`}>
                 <p className={`text-xs font-semibold ${t.subtext} mb-1`}>
-                  Ümumi geyim məsləhəti:
+                  {tx.generalAdviceTitle}
                 </p>
                 <p className="text-sm leading-relaxed">{activeWeather.generalAdvice}</p>
               </div>
@@ -1065,15 +1507,13 @@ export default function HomePage() {
           <div className={`space-y-4 pt-2 border-t ${t.border}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-semibold">Qarderobundan bugünkü kombin</h3>
+                <h3 className="text-base font-semibold">{tx.todayOutfitTitle}</h3>
                 {recommendedOutfit?.explanation ? (
                   <p className="text-xs text-emerald-500 mt-0.5">
-                    Niyə bu kombin: {recommendedOutfit.explanation}
+                    {tx.whyOutfit} {recommendedOutfit.explanation}
                   </p>
                 ) : (
-                  <p className={`text-xs ${t.muted}`}>
-                    Hava temperaturu və yağış/külək göstəricilərinə uyğun seçildi
-                  </p>
+                  <p className={`text-xs ${t.muted}`}>{tx.defaultOutfitSub}</p>
                 )}
               </div>
 
@@ -1083,10 +1523,10 @@ export default function HomePage() {
                   onChange={(e) => setOutfitStyleFilter(e.target.value)}
                   className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
                 >
-                  <option value="all">Bütün stillər</option>
+                  <option value="all">{tx.allStyles}</option>
                   {STYLES.map((st) => (
                     <option key={st.value} value={st.value}>
-                      {st.label}
+                      {st.label[lang] || st.label.az}
                     </option>
                   ))}
                 </select>
@@ -1097,7 +1537,7 @@ export default function HomePage() {
                   onClick={handleRegenerateOutfit}
                   className={`rounded-xl ${t.card} disabled:opacity-40 border px-3.5 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
                 >
-                  Başqa kombin yarat
+                  {tx.generateAnother}
                 </button>
 
                 <button
@@ -1106,14 +1546,14 @@ export default function HomePage() {
                   onClick={handleSaveCurrentOutfit}
                   className="rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-40 border border-emerald-500/40 px-3.5 py-2 text-xs font-medium text-emerald-400 transition cursor-pointer active:scale-95"
                 >
-                  Yadda saxla
+                  {tx.saveOutfit}
                 </button>
               </div>
             </div>
 
             {items.length === 0 ? (
               <div className={`rounded-xl ${t.surface} border p-5 text-center text-xs ${t.muted}`}>
-                Qarderobunda hələ paltar yoxdur. Aşağıdan üst geyim, alt geyim və ayaqqabı əlavə et ki, avtomatik kombin quraq!
+                {tx.emptyWardrobeOutfit}
               </div>
             ) : (
               <div
@@ -1138,12 +1578,10 @@ export default function HomePage() {
                             type="button"
                             onClick={() => toggleLockSlot(slot.key)}
                             className={`text-[10px] px-1.5 py-0.5 rounded transition cursor-pointer active:scale-95 ${
-                              isLocked
-                                ? 'bg-amber-400/20 text-amber-400 font-semibold'
-                                : `${t.muted}`
+                              isLocked ? 'bg-amber-400/20 text-amber-400 font-semibold' : t.muted
                             }`}
                           >
-                            {isLocked ? 'Kilidli' : 'Kilidlə'}
+                            {isLocked ? tx.locked : tx.lock}
                           </button>
                         )}
                       </div>
@@ -1162,7 +1600,7 @@ export default function HomePage() {
                               </p>
                               <p className={`text-[11px] ${t.muted}`}>
                                 {slot.item.color ? `${slot.item.color} • ` : ''}
-                                İstilik {slot.item.warmth_level}/5
+                                {tx.warmthShort} {slot.item.warmth_level}/5
                               </p>
                             </div>
                           </div>
@@ -1174,14 +1612,14 @@ export default function HomePage() {
                                 onClick={() => regenerateSingleSlot(slot.key)}
                                 className={`w-full rounded-lg ${t.card} border py-1 text-[11px] ${t.subtext} transition cursor-pointer active:scale-95`}
                               >
-                                Dəyiş
+                                {tx.swap}
                               </button>
                             </div>
                           )}
                         </div>
                       ) : (
                         <div className={`flex-1 flex items-center justify-center p-4 text-center text-[11px] ${t.muted} min-h-[160px]`}>
-                          Qarderobda {slot.label.toLowerCase()} tapılmadı
+                          {tx.notFoundInSlot}
                         </div>
                       )}
                     </div>
@@ -1197,16 +1635,20 @@ export default function HomePage() {
           <section className={`rounded-2xl ${t.card} border p-5 flex flex-wrap items-center justify-between gap-4 animate-outfit-in`}>
             <div className="flex flex-wrap gap-6">
               <div>
-                <p className={`text-[11px] ${t.muted}`}>Ümumi parça</p>
-                <p className="text-lg font-bold">{wardrobeInsights.total} ədəd</p>
+                <p className={`text-[11px] ${t.muted}`}>{tx.totalItems}</p>
+                <p className="text-lg font-bold">
+                  {wardrobeInsights.total} {tx.piecesUnit}
+                </p>
               </div>
               <div>
-                <p className={`text-[11px] ${t.muted}`}>Orta istilik</p>
+                <p className={`text-[11px] ${t.muted}`}>{tx.avgWarmth}</p>
                 <p className="text-lg font-bold">{wardrobeInsights.avgWarmth} / 5</p>
               </div>
               <div>
-                <p className={`text-[11px] ${t.muted}`}>Suya davamlı</p>
-                <p className="text-lg font-bold">{wardrobeInsights.waterproofCount} ədəd</p>
+                <p className={`text-[11px] ${t.muted}`}>{tx.waterproofCount}</p>
+                <p className="text-lg font-bold">
+                  {wardrobeInsights.waterproofCount} {tx.piecesUnit}
+                </p>
               </div>
             </div>
             <p className={`text-xs ${t.subtext} max-w-md`}>{wardrobeInsights.suggestion}</p>
@@ -1216,7 +1658,9 @@ export default function HomePage() {
         {/* Saved Outfits */}
         {savedOutfits.length > 0 && (
           <section className={`rounded-2xl ${t.card} border p-6 space-y-4 animate-outfit-in`}>
-            <h2 className="text-lg font-semibold">Sevimli kombinlərim ({savedOutfits.length})</h2>
+            <h2 className="text-lg font-semibold">
+              {tx.savedOutfitsTitle} ({savedOutfits.length})
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedOutfits.map((saved) => (
                 <div
@@ -1234,7 +1678,7 @@ export default function HomePage() {
                           onClick={() => handleLoadSavedOutfit(saved)}
                           className="text-xs text-sky-400 hover:underline font-medium transition cursor-pointer"
                         >
-                          Yüklə
+                          {tx.loadBtn}
                         </button>
                       )}
                       <button
@@ -1242,7 +1686,7 @@ export default function HomePage() {
                         onClick={() => handleDeleteSavedOutfit(saved.id)}
                         className={`text-xs ${t.muted} hover:text-red-400 transition cursor-pointer`}
                       >
-                        Sil
+                        {tx.deleteBtn}
                       </button>
                     </div>
                   </div>
@@ -1264,10 +1708,10 @@ export default function HomePage() {
 
         {/* Add item form */}
         <section className={`rounded-2xl ${t.card} border p-6`}>
-          <h2 className="text-lg font-semibold mb-4">Yeni paltar əlavə et</h2>
+          <h2 className="text-lg font-semibold mb-4">{tx.addNewItemTitle}</h2>
           <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2 space-y-2.5">
-              <label className={`block text-xs ${t.muted}`}>Paltar şəkli *</label>
+              <label className={`block text-xs ${t.muted}`}>{tx.photoLabel}</label>
               <input
                 id="clothes-file-input"
                 type="file"
@@ -1280,16 +1724,16 @@ export default function HomePage() {
                 <div className="flex items-center gap-3 pt-1 animate-outfit-in">
                   <img
                     src={imagePreviewUrl}
-                    alt="Önizləmə"
+                    alt="Preview"
                     className={`w-16 h-20 rounded-xl object-cover border ${t.border}`}
                   />
-                  <span className={`text-xs ${t.muted}`}>Seçilmiş şəkil hazırdır</span>
+                  <span className={`text-xs ${t.muted}`}>{tx.previewReady}</span>
                 </div>
               )}
             </div>
 
             <div>
-              <label className={`block text-xs ${t.muted} mb-1.5`}>Kateqoriya *</label>
+              <label className={`block text-xs ${t.muted} mb-1.5`}>{tx.categoryLabel}</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -1304,31 +1748,29 @@ export default function HomePage() {
             </div>
 
             <div>
-              <label className={`block text-xs ${t.muted} mb-1.5`}>
-                Alt kateqoriya (məs: Hudi, Cins)
-              </label>
+              <label className={`block text-xs ${t.muted} mb-1.5`}>{tx.subCategoryLabel}</label>
               <input
                 type="text"
                 value={subCategory}
                 onChange={(e) => setSubCategory(e.target.value)}
-                placeholder="Məsələn: Oversize hudi"
+                placeholder={tx.subCategoryPlaceholder}
                 className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               />
             </div>
 
             <div>
-              <label className={`block text-xs ${t.muted} mb-1.5`}>Rəng</label>
+              <label className={`block text-xs ${t.muted} mb-1.5`}>{tx.colorLabel}</label>
               <input
                 type="text"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                placeholder="Məsələn: Qara, Bej, Göy"
+                placeholder={tx.colorPlaceholder}
                 className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               />
             </div>
 
             <div>
-              <label className={`block text-xs ${t.muted} mb-1.5`}>Stil</label>
+              <label className={`block text-xs ${t.muted} mb-1.5`}>{tx.styleLabel}</label>
               <select
                 value={style}
                 onChange={(e) => setStyle(e.target.value)}
@@ -1336,7 +1778,7 @@ export default function HomePage() {
               >
                 {STYLES.map((st) => (
                   <option key={st.value} value={st.value}>
-                    {st.label}
+                    {st.label[lang] || st.label.az}
                   </option>
                 ))}
               </select>
@@ -1344,7 +1786,7 @@ export default function HomePage() {
 
             <div className="md:col-span-2">
               <div className={`flex items-center justify-between text-xs ${t.muted} mb-1.5`}>
-                <span>İstilik səviyyəsi (1 = çox nazik, 5 = çox qalın)</span>
+                <span>{tx.warmthSlider}</span>
                 <span className="font-semibold">{warmthLevel} / 5</span>
               </div>
               <input
@@ -1365,7 +1807,7 @@ export default function HomePage() {
                   onChange={(e) => setWaterproof(e.target.checked)}
                   className="rounded"
                 />
-                Suya davamlı (yağış üçün)
+                {tx.waterproofCheck}
               </label>
 
               <label className={`flex items-center gap-2 text-sm ${t.subtext} cursor-pointer`}>
@@ -1375,7 +1817,7 @@ export default function HomePage() {
                   onChange={(e) => setWindproof(e.target.checked)}
                   className="rounded"
                 />
-                Küləyə davamlı
+                {tx.windproofCheck}
               </label>
             </div>
 
@@ -1385,7 +1827,7 @@ export default function HomePage() {
                 disabled={uploading}
                 className={`w-full md:w-auto rounded-xl ${t.pillActive} disabled:opacity-50 font-semibold px-6 py-2.5 text-sm transition cursor-pointer active:scale-[0.98]`}
               >
-                {uploading ? 'Yüklənir...' : 'Qarderoba əlavə et'}
+                {uploading ? tx.uploadingBtn : tx.addToWardrobeBtn}
               </button>
             </div>
           </form>
@@ -1394,7 +1836,9 @@ export default function HomePage() {
         {/* Wardrobe list */}
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">Əşyalarım ({filteredItems.length})</h2>
+            <h2 className="text-lg font-semibold">
+              {tx.myItemsTitle} ({filteredItems.length})
+            </h2>
             <div className="flex flex-wrap gap-2">
               {['Hamısı', ...CATEGORIES].map((cat) => (
                 <button
@@ -1404,17 +1848,17 @@ export default function HomePage() {
                     selectedCategoryFilter === cat ? t.pillActive : `${t.pillIdle} border`
                   }`}
                 >
-                  {cat}
+                  {cat === 'Hamısı' ? tx.allFilter : cat}
                 </button>
               ))}
             </div>
           </div>
 
           {loadingItems ? (
-            <p className={`text-sm ${t.muted}`}>Qarderob yüklənir...</p>
+            <p className={`text-sm ${t.muted}`}>{tx.loadingWardrobe}</p>
           ) : filteredItems.length === 0 ? (
             <div className={`rounded-2xl ${t.card} border p-8 text-center text-sm ${t.muted}`}>
-              Bu kateqoriyada hələ paltar yoxdur. Yuxarıdakı formadan ilk paltarını əlavə et!
+              {tx.emptyCategoryMsg}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -1436,21 +1880,25 @@ export default function HomePage() {
                       )}
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         {item.color && (
-                          <span className={`text-[11px] px-2 py-0.5 rounded-md ${t.surface} border ${t.subtext}`}>
+                          <span
+                            className={`text-[11px] px-2 py-0.5 rounded-md ${t.surface} border ${t.subtext}`}
+                          >
                             {item.color}
                           </span>
                         )}
-                        <span className={`text-[11px] px-2 py-0.5 rounded-md ${t.surface} border ${t.subtext}`}>
-                          İstilik: {item.warmth_level}/5
+                        <span
+                          className={`text-[11px] px-2 py-0.5 rounded-md ${t.surface} border ${t.subtext}`}
+                        >
+                          {tx.warmthShort}: {item.warmth_level}/5
                         </span>
                         {item.waterproof && (
                           <span className="text-[11px] px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400">
-                            Suya davamlı
+                            {tx.waterproofBadge}
                           </span>
                         )}
                         {item.windproof && (
                           <span className="text-[11px] px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-400">
-                            Küləyə davamlı
+                            {tx.windproofBadge}
                           </span>
                         )}
                       </div>
@@ -1461,7 +1909,7 @@ export default function HomePage() {
                       onClick={() => handleDeleteItem(item)}
                       className={`w-full rounded-lg ${t.surface} hover:bg-red-500/15 border hover:border-red-500/30 py-1.5 text-xs ${t.muted} hover:text-red-400 transition cursor-pointer active:scale-95`}
                     >
-                      Sil
+                      {tx.deleteBtn}
                     </button>
                   </div>
                 </div>
