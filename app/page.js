@@ -126,13 +126,16 @@ const UI_TEXT = {
     haveAccount: 'Artıq hesabın var? Daxil ol',
     noAccount: 'Hesabın yoxdur? Yeni hesab yarat',
     logout: 'Çıxış et',
+    tabToday: 'Bugünkü Hava & Kombin',
+    tabTravel: 'Səyahət Şəhəri (2-ci səkmə)',
     liveWeatherTitle: 'Canlı Hava & Ağıllı Kombin',
     gpsFinding: 'GPS ilə məkan tapılır...',
     gpsFound: 'GPS ilə tapıldı',
     gpsDenied: 'GPS icazəsi verilmədi (şəhər seçin)',
     gpsUnsupported: 'GPS dəstəklənmir (şəhər seçildi)',
-    citySelected: 'Siyahıdan seçildi',
-    citySearched: 'Axtarışla tapıldı',
+    citySelected: 'Əl ilə seçildi (GPS kilidlənib)',
+    citySearched: 'Axtarışla seçildi (GPS kilidlənib)',
+    travelPinned: 'Səyahət şəhəri aktivdir',
     checkingWeather: 'Hava yoxlanılır...',
     chooseLocation: 'Məkan seçin',
     feelsLike: 'Hiss olunan',
@@ -154,6 +157,17 @@ const UI_TEXT = {
     saveOutfit: 'Yadda saxla',
     savedToast: 'Kombin "Sevimli kombinlərim" bölməsinə əlavə olundu!',
     loadedToast: 'Sevimli kombin əsas sahəyə yükləndi.',
+    travelTitle: 'Səyahət və planlaşdırılan şəhər',
+    travelSubtitle:
+      'Səyahətə gedəcəyin və ya yoxlamaq istədiyin şəhəri bura yaz — GPS sənin seçdiyin şəhəri dəyişməyəcək.',
+    travelInputPlaceholder: 'Gedəcəyin şəhəri yaz (məs: London, Dubai, Rome)...',
+    travelNotePlaceholder: 'Qeyd (məs: 3 günlük iş səfəri, axşam tədbiri)',
+    travelSaveBtn: 'Şəhəri qeyd et və tətbiq et',
+    travelSavedListTitle: 'Qeyd etdiyin səyahət şəhərləri',
+    useCityBtn: 'Bu şəhəri seç',
+    removeCityBtn: 'Çıxar',
+    travelEmptyMsg: 'Hələ səyahət şəhəri qeyd etməmisən. Yuxarıdan gedəcəyin şəhəri əlavə et.',
+    travelSetToast: 'Səyahət şəhəri aktivləşdirildi və yadda saxlanıldı.',
     emptyWardrobeOutfit:
       'Qarderobunda hələ paltar yoxdur. Aşağıdan üst geyim, alt geyim və ayaqqabı əlavə et ki, avtomatik kombin quraq!',
     locked: 'Kilidli',
@@ -216,13 +230,16 @@ const UI_TEXT = {
     haveAccount: 'Already have an account? Sign in',
     noAccount: "Don't have an account? Create one",
     logout: 'Sign out',
+    tabToday: 'Today Weather & Outfit',
+    tabTravel: 'Travel City (2nd Tab)',
     liveWeatherTitle: 'Live Weather & Smart Outfit',
     gpsFinding: 'Detecting location via GPS...',
     gpsFound: 'Located via GPS',
     gpsDenied: 'GPS denied (select a city)',
     gpsUnsupported: 'GPS unsupported (city selected)',
-    citySelected: 'Selected from list',
-    citySearched: 'Found via search',
+    citySelected: 'Manually selected (GPS paused)',
+    citySearched: 'Found via search (GPS paused)',
+    travelPinned: 'Travel city active',
     checkingWeather: 'Checking weather...',
     chooseLocation: 'Choose a location',
     feelsLike: 'Feels like',
@@ -244,6 +261,17 @@ const UI_TEXT = {
     saveOutfit: 'Save outfit',
     savedToast: 'Outfit added to Saved Outfits!',
     loadedToast: 'Saved outfit loaded into main view.',
+    travelTitle: 'Travel & Planned City',
+    travelSubtitle:
+      'Enter the city you are traveling to or want to check — GPS will not overwrite your chosen city.',
+    travelInputPlaceholder: 'Enter destination city (e.g. London, Dubai, Rome)...',
+    travelNotePlaceholder: 'Note (e.g. 3-day trip, evening dinner)',
+    travelSaveBtn: 'Save & apply city',
+    travelSavedListTitle: 'Saved travel cities',
+    useCityBtn: 'Use city',
+    removeCityBtn: 'Remove',
+    travelEmptyMsg: 'No travel cities saved yet. Add a destination city above.',
+    travelSetToast: 'Travel city activated and saved.',
     emptyWardrobeOutfit:
       'Your wardrobe is empty. Add tops, bottoms, and shoes below to generate smart outfits!',
     locked: 'Locked',
@@ -305,13 +333,16 @@ const UI_TEXT = {
     haveAccount: 'Уже есть аккаунт? Войти',
     noAccount: 'Нет аккаунта? Зарегистрироваться',
     logout: 'Выйти',
+    tabToday: 'Погода и образ',
+    tabTravel: 'Город поездки (2-я вкладка)',
     liveWeatherTitle: 'Погода и умный образ',
     gpsFinding: 'Определение по GPS...',
     gpsFound: 'Определено по GPS',
     gpsDenied: 'GPS отклонен (выберите город)',
     gpsUnsupported: 'GPS не поддерживается (выбран город)',
-    citySelected: 'Выбрано из списка',
-    citySearched: 'Найдено в поиске',
+    citySelected: 'Выбрано вручную (GPS на паузе)',
+    citySearched: 'Найдено в поиске (GPS на паузе)',
+    travelPinned: 'Город поездки активен',
     checkingWeather: 'Проверка погоды...',
     chooseLocation: 'Выберите город',
     feelsLike: 'Ощущается как',
@@ -333,6 +364,17 @@ const UI_TEXT = {
     saveOutfit: 'Сохранить',
     savedToast: 'Образ добавлен в «Избранные образы»!',
     loadedToast: 'Сохраненный образ загружен.',
+    travelTitle: 'Поездка и планируемый город',
+    travelSubtitle:
+      'Укажите город поездки — GPS не будет перезаписывать выбранный вами город.',
+    travelInputPlaceholder: 'Введите город (напр. Лондон, Дубай, Рим)...',
+    travelNotePlaceholder: 'Заметка (напр. поездка на 3 дня, ужин)',
+    travelSaveBtn: 'Сохранить и применить',
+    travelSavedListTitle: 'Сохраненные города поездок',
+    useCityBtn: 'Выбрать',
+    removeCityBtn: 'Удалить',
+    travelEmptyMsg: 'Пока нет сохраненных городов поездки. Добавьте город выше.',
+    travelSetToast: 'Город поездки активирован и сохранен.',
     emptyWardrobeOutfit:
       'В гардеробе пока нет вещей. Добавьте верх, низ и обувь ниже для умного подбора!',
     locked: 'Закреплено',
@@ -641,6 +683,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [isRegister, setIsRegister] = useState(false);
 
+  // Active tab: 'today' | 'travel'
+  const [activeTab, setActiveTab] = useState('today');
+
   // Language state: 'az' | 'en' | 'ru'
   const [lang, setLang] = useState('az');
   const tx = UI_TEXT[lang] || UI_TEXT.az;
@@ -673,7 +718,8 @@ export default function HomePage() {
   const [windproof, setWindproof] = useState(false);
   const [style, setStyle] = useState('gundelik');
 
-  // Weather & World City Search state
+  // Location & Weather state
+  const [locationMode, setLocationMode] = useState('gps'); // 'gps' | 'manual'
   const [selectedCity, setSelectedCity] = useState('Bakı');
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [searchingCity, setSearchingCity] = useState(false);
@@ -687,6 +733,12 @@ export default function HomePage() {
   const [lockedSlots, setLockedSlots] = useState({});
   const [savedOutfits, setSavedOutfits] = useState([]);
 
+  // Travel / Planned city state (2nd tab)
+  const [travelCityInput, setTravelCityInput] = useState('');
+  const [travelNoteInput, setTravelNoteInput] = useState('');
+  const [travelCities, setTravelCities] = useState([]);
+  const [savingTravelCity, setSavingTravelCity] = useState(false);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -697,6 +749,10 @@ export default function HomePage() {
       const savedLang = localStorage.getItem('geyin_lang');
       if (savedLang === 'az' || savedLang === 'en' || savedLang === 'ru') {
         setLang(savedLang);
+      }
+      const savedTravelList = localStorage.getItem('geyin_travel_cities');
+      if (savedTravelList) {
+        setTravelCities(JSON.parse(savedTravelList));
       }
     } catch {
       // ignore
@@ -867,12 +923,31 @@ export default function HomePage() {
     }
   }, []);
 
+  const persistManualLocation = useCallback((cityValue, lat, lon, label) => {
+    setLocationMode('manual');
+    try {
+      localStorage.setItem(
+        'geyin_manual_location',
+        JSON.stringify({ city: cityValue, lat, lon, label })
+      );
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const detectGpsLocation = useCallback(() => {
     setDemoPresetId('live');
+    setLocationMode('gps');
+    try {
+      localStorage.removeItem('geyin_manual_location');
+    } catch {
+      // ignore
+    }
+
     if (typeof window === 'undefined' || !navigator.geolocation) {
       setLocationSource(tx.gpsUnsupported);
       const fallback = WORLD_CITIES[0];
-      fetchWeatherByCoords(fallback.lat, fallback.lon, fallback.name);
+      fetchWeatherByCoords(fallback.lat, fallback.lon, `${fallback.name} (${fallback.code})`);
       return;
     }
 
@@ -892,7 +967,7 @@ export default function HomePage() {
         setLocationSource(tx.gpsDenied);
         const fallback =
           WORLD_CITIES.find((c) => c.name === selectedCity) || WORLD_CITIES[0];
-        fetchWeatherByCoords(fallback.lat, fallback.lon, fallback.name);
+        fetchWeatherByCoords(fallback.lat, fallback.lon, `${fallback.name} (${fallback.code})`);
       },
       { timeout: 8000 }
     );
@@ -904,8 +979,10 @@ export default function HomePage() {
     const cityObj = WORLD_CITIES.find((c) => c.name === cityName);
     if (cityObj) {
       const displayCity = cityObj.nameByLang ? cityObj.nameByLang[lang] || cityObj.name : cityObj.name;
+      const fullLabel = `${displayCity} (${cityObj.code})`;
+      persistManualLocation(cityObj.name, cityObj.lat, cityObj.lon, fullLabel);
       setLocationSource(tx.citySelected);
-      fetchWeatherByCoords(cityObj.lat, cityObj.lon, displayCity);
+      fetchWeatherByCoords(cityObj.lat, cityObj.lon, fullLabel);
     }
   };
 
@@ -933,6 +1010,7 @@ export default function HomePage() {
         ? `${place.name}, ${place.country}`
         : place.name;
       setDemoPresetId('live');
+      persistManualLocation(place.name, place.latitude, place.longitude, displayLabel);
       setLocationSource(tx.citySearched);
       setCitySearchQuery('');
       await fetchWeatherByCoords(place.latitude, place.longitude, displayLabel);
@@ -943,6 +1021,101 @@ export default function HomePage() {
     }
   };
 
+  const handleAddTravelCity = async (e) => {
+    e.preventDefault();
+    const q = travelCityInput.trim();
+    if (!q) return;
+    setSavingTravelCity(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const geoRes = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+          q
+        )}&count=1&language=${lang === 'ru' ? 'ru' : lang === 'en' ? 'en' : 'en'}&format=json`
+      );
+      const geoData = await geoRes.json();
+      const place = geoData?.results?.[0];
+      if (!place) {
+        setError(tx.cityNotFound);
+        return;
+      }
+
+      const label = place.country_code
+        ? `${place.name} (${place.country_code})`
+        : place.name;
+
+      const entry = {
+        id: Date.now(),
+        name: place.name,
+        code: place.country_code || '',
+        label,
+        note: travelNoteInput.trim(),
+        lat: place.latitude,
+        lon: place.longitude,
+      };
+
+      const nextList = [entry, ...travelCities.filter((c) => c.label !== label)].slice(0, 10);
+      setTravelCities(nextList);
+      try {
+        localStorage.setItem('geyin_travel_cities', JSON.stringify(nextList));
+      } catch {
+        // ignore
+      }
+
+      setDemoPresetId('live');
+      persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
+      setLocationSource(`${tx.travelPinned}: ${entry.label}`);
+      await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
+      setTravelCityInput('');
+      setTravelNoteInput('');
+      setActiveTab('today');
+      setMessage(tx.travelSetToast);
+    } catch {
+      setError(tx.cityNotFound);
+    } finally {
+      setSavingTravelCity(false);
+    }
+  };
+
+  const handleSelectSavedTravelCity = async (entry) => {
+    setDemoPresetId('live');
+    persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
+    setLocationSource(`${tx.travelPinned}: ${entry.label}`);
+    await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
+    setActiveTab('today');
+  };
+
+  const handleRemoveTravelCity = (id) => {
+    const nextList = travelCities.filter((c) => c.id !== id);
+    setTravelCities(nextList);
+    try {
+      localStorage.setItem('geyin_travel_cities', JSON.stringify(nextList));
+    } catch {
+      // ignore
+    }
+  };
+
+  const initLocationOnLogin = useCallback(() => {
+    let savedManual = null;
+    try {
+      const raw = localStorage.getItem('geyin_manual_location');
+      if (raw) savedManual = JSON.parse(raw);
+    } catch {
+      // ignore
+    }
+
+    if (savedManual && typeof savedManual.lat === 'number' && typeof savedManual.lon === 'number') {
+      setLocationMode('manual');
+      if (savedManual.city) setSelectedCity(savedManual.city);
+      setLocationSource(tx.citySelected);
+      fetchWeatherByCoords(savedManual.lat, savedManual.lon, savedManual.label || savedManual.city);
+    } else {
+      detectGpsLocation();
+    }
+  }, [detectGpsLocation, fetchWeatherByCoords, tx.citySelected]);
+
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -951,7 +1124,7 @@ export default function HomePage() {
       setLoading(false);
       if (currentUser) {
         fetchItems(currentUser.id);
-        detectGpsLocation();
+        initLocationOnLogin();
         try {
           const raw = localStorage.getItem(`geyin_saved_${currentUser.id}`);
           if (raw) setSavedOutfits(JSON.parse(raw));
@@ -969,7 +1142,7 @@ export default function HomePage() {
       setLoading(false);
       if (currentUser) {
         fetchItems(currentUser.id);
-        detectGpsLocation();
+        initLocationOnLogin();
       } else {
         setItems([]);
       }
@@ -978,7 +1151,7 @@ export default function HomePage() {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [detectGpsLocation]);
+  }, [initLocationOnLogin]);
 
   useEffect(() => {
     if (activeWeather && items.length > 0) {
@@ -1431,6 +1604,28 @@ export default function HomePage() {
           </div>
         </header>
 
+        {/* Tabs switcher */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('today')}
+            className={`rounded-xl px-4 py-2 text-xs font-semibold transition cursor-pointer active:scale-95 ${
+              activeTab === 'today' ? t.pillActive : `${t.pillIdle} border`
+            }`}
+          >
+            {tx.tabToday}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('travel')}
+            className={`rounded-xl px-4 py-2 text-xs font-semibold transition cursor-pointer active:scale-95 ${
+              activeTab === 'travel' ? 'bg-sky-500 text-white' : `${t.pillIdle} border`
+            }`}
+          >
+            {tx.tabTravel}
+          </button>
+        </div>
+
         {error && (
           <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3.5 text-sm text-red-500 animate-outfit-in">
             {error}
@@ -1443,233 +1638,304 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Weather & Smart Outfit Section */}
-        <section className={`rounded-2xl ${t.hero} border p-6 space-y-6 transition-all duration-300`}>
-          <div className="flex flex-wrap items-center justify-between gap-4">
+        {activeTab === 'travel' ? (
+          <section className={`rounded-2xl ${t.hero} border p-6 space-y-6 animate-outfit-in`}>
             <div>
-              <span className={`text-[11px] uppercase tracking-wider ${t.muted}`}>
-                {tx.liveWeatherTitle} • {locationSource}
-              </span>
-              <h2 className="text-xl font-bold mt-1">
-                {loadingWeather && demoPresetId === 'live'
-                  ? tx.checkingWeather
-                  : activeWeather
-                  ? `${activeWeather.locationName}: ${activeWeather.temp}°C (${activeWeather.conditionText})`
-                  : tx.chooseLocation}
-              </h2>
-              {activeWeather && (
-                <p className={`text-xs ${t.muted} mt-1`}>
-                  {tx.feelsLike}: {activeWeather.apparent}°C • {tx.dailyRange}:{' '}
-                  {activeWeather.minTemp}°C / {activeWeather.maxTemp}°C • {tx.wind}:{' '}
-                  {Math.round(activeWeather.wind)} {tx.kmh}
-                </p>
-              )}
+              <h2 className="text-xl font-bold">{tx.travelTitle}</h2>
+              <p className={`text-xs ${t.muted} mt-1`}>{tx.travelSubtitle}</p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <form onSubmit={handleAddTravelCity} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <input
+                type="text"
+                required
+                value={travelCityInput}
+                onChange={(e) => setTravelCityInput(e.target.value)}
+                placeholder={tx.travelInputPlaceholder}
+                className={`rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
+              />
+              <input
+                type="text"
+                value={travelNoteInput}
+                onChange={(e) => setTravelNoteInput(e.target.value)}
+                placeholder={tx.travelNotePlaceholder}
+                className={`rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
+              />
               <button
-                type="button"
-                onClick={detectGpsLocation}
-                className={`rounded-xl ${t.pillActive} px-3.5 py-2 text-xs font-semibold transition cursor-pointer active:scale-95`}
+                type="submit"
+                disabled={savingTravelCity}
+                className={`rounded-xl ${t.pillActive} disabled:opacity-50 px-4 py-2.5 text-xs font-semibold transition cursor-pointer active:scale-95`}
               >
-                {tx.gpsBtn}
+                {savingTravelCity ? tx.searching : tx.travelSaveBtn}
               </button>
+            </form>
 
-              <select
-                value={selectedCity}
-                onChange={(e) => handleCitySelect(e.target.value)}
-                className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
-              >
-                {WORLD_CITIES.map((city) => (
-                  <option key={`${city.name}-${city.code}`} value={city.name}>
-                    {city.nameByLang ? city.nameByLang[lang] || city.name : city.name} ({city.code})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* World City Search */}
-          <form onSubmit={handleWorldCitySearch} className="flex flex-wrap gap-2">
-            <input
-              type="text"
-              value={citySearchQuery}
-              onChange={(e) => setCitySearchQuery(e.target.value)}
-              placeholder={tx.searchCityPlaceholder}
-              className={`flex-1 min-w-[210px] rounded-xl ${t.surface} border px-3.5 py-2 text-xs focus:outline-none`}
-            />
-            <button
-              type="submit"
-              disabled={searchingCity}
-              className={`rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
-            >
-              {searchingCity ? tx.searching : tx.searchBtn}
-            </button>
-          </form>
-
-          {/* Demo Day Weather Simulator bar */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className={`text-[11px] ${t.muted} mr-1`}>{tx.demoMode}</span>
-            {DEMO_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => setDemoPresetId(preset.id)}
-                className={`rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer active:scale-95 ${
-                  demoPresetId === preset.id
-                    ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40'
-                    : `${t.pillIdle} border`
-                }`}
-              >
-                {preset.label[lang] || preset.label.az}
-              </button>
-            ))}
-          </div>
-
-          {/* General advice & Evening alert */}
-          {activeWeather && (
-            <div className="space-y-2.5">
-              <div className={`rounded-xl ${t.surface} border p-4`}>
-                <p className={`text-xs font-semibold ${t.subtext} mb-1`}>
-                  {tx.generalAdviceTitle}
-                </p>
-                <p className="text-sm leading-relaxed">{activeWeather.generalAdvice}</p>
-              </div>
-
-              {activeWeather.eveningAlert && (
-                <div className="rounded-xl bg-amber-500/15 border border-amber-500/35 px-4 py-3 text-xs text-amber-400">
-                  {activeWeather.eveningAlert}
+            <div className="space-y-3 pt-2 border-t border-zinc-800/40">
+              <h3 className="text-sm font-semibold">{tx.travelSavedListTitle}</h3>
+              {travelCities.length === 0 ? (
+                <p className={`text-xs ${t.muted}`}>{tx.travelEmptyMsg}</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {travelCities.map((c) => (
+                    <div
+                      key={c.id}
+                      className={`rounded-xl ${t.surface} border p-3.5 flex items-center justify-between gap-3`}
+                    >
+                      <div>
+                        <p className="text-xs font-semibold">{c.label}</p>
+                        {c.note && <p className={`text-[11px] ${t.muted} mt-0.5`}>{c.note}</p>}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleSelectSavedTravelCity(c)}
+                          className="rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/40 px-2.5 py-1 text-[11px] font-medium cursor-pointer"
+                        >
+                          {tx.useCityBtn}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTravelCity(c.id)}
+                          className={`text-[11px] ${t.muted} hover:text-red-400 cursor-pointer`}
+                        >
+                          {tx.removeCityBtn}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-          )}
-
-          {/* Smart Wardrobe Outfit */}
-          <div className={`space-y-4 pt-2 border-t ${t.border}`}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          </section>
+        ) : (
+          /* Weather & Smart Outfit Section */
+          <section className={`rounded-2xl ${t.hero} border p-6 space-y-6 transition-all duration-300`}>
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h3 className="text-base font-semibold">{tx.todayOutfitTitle}</h3>
-                {recommendedOutfit?.explanation ? (
-                  <p className="text-xs text-emerald-500 mt-0.5">
-                    {tx.whyOutfit} {recommendedOutfit.explanation}
+                <span className={`text-[11px] uppercase tracking-wider ${t.muted}`}>
+                  {tx.liveWeatherTitle} • {locationSource} ({locationMode.toUpperCase()})
+                </span>
+                <h2 className="text-xl font-bold mt-1">
+                  {loadingWeather && demoPresetId === 'live'
+                    ? tx.checkingWeather
+                    : activeWeather
+                    ? `${activeWeather.locationName}: ${activeWeather.temp}°C (${activeWeather.conditionText})`
+                    : tx.chooseLocation}
+                </h2>
+                {activeWeather && (
+                  <p className={`text-xs ${t.muted} mt-1`}>
+                    {tx.feelsLike}: {activeWeather.apparent}°C • {tx.dailyRange}:{' '}
+                    {activeWeather.minTemp}°C / {activeWeather.maxTemp}°C • {tx.wind}:{' '}
+                    {Math.round(activeWeather.wind)} {tx.kmh}
                   </p>
-                ) : (
-                  <p className={`text-xs ${t.muted}`}>{tx.defaultOutfitSub}</p>
                 )}
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={detectGpsLocation}
+                  className={`rounded-xl ${t.pillActive} px-3.5 py-2 text-xs font-semibold transition cursor-pointer active:scale-95`}
+                >
+                  {tx.gpsBtn}
+                </button>
+
                 <select
-                  value={outfitStyleFilter}
-                  onChange={(e) => setOutfitStyleFilter(e.target.value)}
+                  value={selectedCity}
+                  onChange={(e) => handleCitySelect(e.target.value)}
                   className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
                 >
-                  <option value="all">{tx.allStyles}</option>
-                  {STYLES.map((st) => (
-                    <option key={st.value} value={st.value}>
-                      {st.label[lang] || st.label.az}
+                  {WORLD_CITIES.map((city) => (
+                    <option key={`${city.name}-${city.code}`} value={city.name}>
+                      {city.nameByLang ? city.nameByLang[lang] || city.name : city.name} ({city.code})
                     </option>
                   ))}
                 </select>
-
-                <button
-                  type="button"
-                  disabled={!activeWeather || items.length === 0}
-                  onClick={handleRegenerateOutfit}
-                  className={`rounded-xl ${t.card} disabled:opacity-40 border px-3.5 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
-                >
-                  {tx.generateAnother}
-                </button>
-
-                <button
-                  type="button"
-                  disabled={!recommendedOutfit}
-                  onClick={handleSaveCurrentOutfit}
-                  className="rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-40 border border-emerald-500/40 px-3.5 py-2 text-xs font-medium text-emerald-400 transition cursor-pointer active:scale-95"
-                >
-                  {tx.saveOutfit}
-                </button>
               </div>
             </div>
 
-            {items.length === 0 ? (
-              <div className={`rounded-xl ${t.surface} border p-5 text-center text-xs ${t.muted}`}>
-                {tx.emptyWardrobeOutfit}
-              </div>
-            ) : (
-              <div
-                key={outfitAnimKey}
-                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 animate-outfit-in"
+            {/* World City Search */}
+            <form onSubmit={handleWorldCitySearch} className="flex flex-wrap gap-2">
+              <input
+                type="text"
+                value={citySearchQuery}
+                onChange={(e) => setCitySearchQuery(e.target.value)}
+                placeholder={tx.searchCityPlaceholder}
+                className={`flex-1 min-w-[210px] rounded-xl ${t.surface} border px-3.5 py-2 text-xs focus:outline-none`}
+              />
+              <button
+                type="submit"
+                disabled={searchingCity}
+                className={`rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
               >
-                {outfitSlots.map((slot) => {
-                  const isLocked = !!lockedSlots[slot.key];
-                  return (
-                    <div
-                      key={slot.key}
-                      className={`rounded-xl ${t.surface} border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${
-                        isLocked ? 'border-amber-400/80 ring-1 ring-amber-400/30' : ''
-                      }`}
-                    >
-                      <div className={`px-3 py-2 border-b ${t.border} flex items-center justify-between gap-1`}>
-                        <span className={`text-[11px] font-semibold ${t.subtext} truncate`}>
-                          {slot.label}
-                        </span>
-                        {slot.item && (
-                          <button
-                            type="button"
-                            onClick={() => toggleLockSlot(slot.key)}
-                            className={`text-[10px] px-1.5 py-0.5 rounded transition cursor-pointer active:scale-95 ${
-                              isLocked ? 'bg-amber-400/20 text-amber-400 font-semibold' : t.muted
-                            }`}
-                          >
-                            {isLocked ? tx.locked : tx.lock}
-                          </button>
-                        )}
-                      </div>
+                {searchingCity ? tx.searching : tx.searchBtn}
+              </button>
+            </form>
 
-                      {slot.item ? (
-                        <div className="flex-1 flex flex-col justify-between">
-                          <div>
-                            <img
-                              src={slot.item.image_url}
-                              alt={slot.item.sub_category || slot.label}
-                              className="w-full h-36 object-cover"
-                            />
-                            <div className="p-2.5 space-y-1">
-                              <p className="text-xs font-medium truncate">
-                                {slot.item.sub_category || getCategoryLabel(slot.item.category)}
-                              </p>
-                              <p className={`text-[11px] ${t.muted}`}>
-                                {slot.item.color ? `${slot.item.color} • ` : ''}
-                                {tx.warmthShort} {slot.item.warmth_level}/5
-                              </p>
-                            </div>
-                          </div>
+            {/* Demo Day Weather Simulator bar */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className={`text-[11px] ${t.muted} mr-1`}>{tx.demoMode}</span>
+              {DEMO_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => setDemoPresetId(preset.id)}
+                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer active:scale-95 ${
+                    demoPresetId === preset.id
+                      ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40'
+                      : `${t.pillIdle} border`
+                  }`}
+                >
+                  {preset.label[lang] || preset.label.az}
+                </button>
+              ))}
+            </div>
 
-                          {!isLocked && (
-                            <div className="px-2.5 pb-2.5">
-                              <button
-                                type="button"
-                                onClick={() => regenerateSingleSlot(slot.key)}
-                                className={`w-full rounded-lg ${t.card} border py-1 text-[11px] ${t.subtext} transition cursor-pointer active:scale-95`}
-                              >
-                                {tx.swap}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className={`flex-1 flex items-center justify-center p-4 text-center text-[11px] ${t.muted} min-h-[160px]`}>
-                          {tx.notFoundInSlot}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            {/* General advice & Evening alert */}
+            {activeWeather && (
+              <div className="space-y-2.5">
+                <div className={`rounded-xl ${t.surface} border p-4`}>
+                  <p className={`text-xs font-semibold ${t.subtext} mb-1`}>
+                    {tx.generalAdviceTitle}
+                  </p>
+                  <p className="text-sm leading-relaxed">{activeWeather.generalAdvice}</p>
+                </div>
+
+                {activeWeather.eveningAlert && (
+                  <div className="rounded-xl bg-amber-500/15 border border-amber-500/35 px-4 py-3 text-xs text-amber-400">
+                    {activeWeather.eveningAlert}
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        </section>
+
+            {/* Smart Wardrobe Outfit */}
+            <div className={`space-y-4 pt-2 border-t ${t.border}`}>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-semibold">{tx.todayOutfitTitle}</h3>
+                  {recommendedOutfit?.explanation ? (
+                    <p className="text-xs text-emerald-500 mt-0.5">
+                      {tx.whyOutfit} {recommendedOutfit.explanation}
+                    </p>
+                  ) : (
+                    <p className={`text-xs ${t.muted}`}>{tx.defaultOutfitSub}</p>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={outfitStyleFilter}
+                    onChange={(e) => setOutfitStyleFilter(e.target.value)}
+                    className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
+                  >
+                    <option value="all">{tx.allStyles}</option>
+                    {STYLES.map((st) => (
+                      <option key={st.value} value={st.value}>
+                        {st.label[lang] || st.label.az}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    disabled={!activeWeather || items.length === 0}
+                    onClick={handleRegenerateOutfit}
+                    className={`rounded-xl ${t.card} disabled:opacity-40 border px-3.5 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
+                  >
+                    {tx.generateAnother}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!recommendedOutfit}
+                    onClick={handleSaveCurrentOutfit}
+                    className="rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-40 border border-emerald-500/40 px-3.5 py-2 text-xs font-medium text-emerald-400 transition cursor-pointer active:scale-95"
+                  >
+                    {tx.saveOutfit}
+                  </button>
+                </div>
+              </div>
+
+              {items.length === 0 ? (
+                <div className={`rounded-xl ${t.surface} border p-5 text-center text-xs ${t.muted}`}>
+                  {tx.emptyWardrobeOutfit}
+                </div>
+              ) : (
+                <div
+                  key={outfitAnimKey}
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 animate-outfit-in"
+                >
+                  {outfitSlots.map((slot) => {
+                    const isLocked = !!lockedSlots[slot.key];
+                    return (
+                      <div
+                        key={slot.key}
+                        className={`rounded-xl ${t.surface} border overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${
+                          isLocked ? 'border-amber-400/80 ring-1 ring-amber-400/30' : ''
+                        }`}
+                      >
+                        <div className={`px-3 py-2 border-b ${t.border} flex items-center justify-between gap-1`}>
+                          <span className={`text-[11px] font-semibold ${t.subtext} truncate`}>
+                            {slot.label}
+                          </span>
+                          {slot.item && (
+                            <button
+                              type="button"
+                              onClick={() => toggleLockSlot(slot.key)}
+                              className={`text-[10px] px-1.5 py-0.5 rounded transition cursor-pointer active:scale-95 ${
+                                isLocked ? 'bg-amber-400/20 text-amber-400 font-semibold' : t.muted
+                              }`}
+                            >
+                              {isLocked ? tx.locked : tx.lock}
+                            </button>
+                          )}
+                        </div>
+
+                        {slot.item ? (
+                          <div className="flex-1 flex flex-col justify-between">
+                            <div>
+                              <img
+                                src={slot.item.image_url}
+                                alt={slot.item.sub_category || slot.label}
+                                className="w-full h-36 object-cover"
+                              />
+                              <div className="p-2.5 space-y-1">
+                                <p className="text-xs font-medium truncate">
+                                  {slot.item.sub_category || getCategoryLabel(slot.item.category)}
+                                </p>
+                                <p className={`text-[11px] ${t.muted}`}>
+                                  {slot.item.color ? `${slot.item.color} • ` : ''}
+                                  {tx.warmthShort} {slot.item.warmth_level}/5
+                                </p>
+                              </div>
+                            </div>
+
+                            {!isLocked && (
+                              <div className="px-2.5 pb-2.5">
+                                <button
+                                  type="button"
+                                  onClick={() => regenerateSingleSlot(slot.key)}
+                                  className={`w-full rounded-lg ${t.card} border py-1 text-[11px] ${t.subtext} transition cursor-pointer active:scale-95`}
+                                >
+                                  {tx.swap}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className={`flex-1 flex items-center justify-center p-4 text-center text-[11px] ${t.muted} min-h-[160px]`}>
+                            {tx.notFoundInSlot}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Wardrobe Insights Panel */}
         {wardrobeInsights && (
