@@ -170,6 +170,8 @@ const UI_TEXT = {
     deleteBtn: 'Sil',
     addNewItemTitle: 'Yeni paltar əlavə et',
     photoLabel: 'Paltar şəkli *',
+    chooseFileBtn: 'Fayl seç',
+    noFileChosen: 'Fayl seçilmədi',
     previewReady: 'Seçilmiş şəkil hazırdır',
     categoryLabel: 'Kateqoriya *',
     subCategoryLabel: 'Alt kateqoriya (məs: Hudi, Cins)',
@@ -258,6 +260,8 @@ const UI_TEXT = {
     deleteBtn: 'Delete',
     addNewItemTitle: 'Add new clothing item',
     photoLabel: 'Clothing photo *',
+    chooseFileBtn: 'Choose file',
+    noFileChosen: 'No file chosen',
     previewReady: 'Selected photo ready',
     categoryLabel: 'Category *',
     subCategoryLabel: 'Subcategory (e.g. Hoodie, Jeans)',
@@ -345,6 +349,8 @@ const UI_TEXT = {
     deleteBtn: 'Удалить',
     addNewItemTitle: 'Добавить вещь',
     photoLabel: 'Фото вещи *',
+    chooseFileBtn: 'Выберите файл',
+    noFileChosen: 'Файл не выбран',
     previewReady: 'Фото выбрано',
     categoryLabel: 'Категория *',
     subCategoryLabel: 'Подкатегория (напр. Худи, Джинсы)',
@@ -1753,8 +1759,19 @@ export default function HomePage() {
                 accept="image/*"
                 required
                 onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2 text-sm`}
+                className="hidden"
               />
+              <div className={`w-full rounded-xl ${t.surface} border px-3.5 py-2 text-sm flex items-center gap-3`}>
+                <label
+                  htmlFor="clothes-file-input"
+                  className={`rounded-lg ${t.pillActive} px-3 py-1.5 text-xs font-medium cursor-pointer transition active:scale-95 shrink-0`}
+                >
+                  {tx.chooseFileBtn}
+                </label>
+                <span className={`text-xs ${t.muted} truncate`}>
+                  {imageFile ? imageFile.name : tx.noFileChosen}
+                </span>
+              </div>
               {imagePreviewUrl && (
                 <div className="flex items-center gap-3 pt-1 animate-outfit-in">
                   <img
