@@ -127,7 +127,7 @@ const UI_TEXT = {
     noAccount: 'Hesabın yoxdur? Yeni hesab yarat',
     logout: 'Çıxış et',
     tabToday: 'Bugünkü Hava & Kombin',
-    tabTravel: 'Səyahət Şəhəri (2-ci səkmə)',
+    tabTravel: 'Səyahət Şəhəri',
     liveWeatherTitle: 'Canlı Hava & Ağıllı Kombin',
     gpsFinding: 'GPS ilə məkan tapılır...',
     gpsFound: 'GPS ilə tapıldı',
@@ -157,17 +157,25 @@ const UI_TEXT = {
     saveOutfit: 'Yadda saxla',
     savedToast: 'Kombin "Sevimli kombinlərim" bölməsinə əlavə olundu!',
     loadedToast: 'Sevimli kombin əsas sahəyə yükləndi.',
-    travelTitle: 'Səyahət və planlaşdırılan şəhər',
+    travelTitle: 'Səyahət və 1 həftəlik valiz tövsiyəsi',
     travelSubtitle:
-      'Səyahətə gedəcəyin və ya yoxlamaq istədiyin şəhəri bura yaz — GPS sənin seçdiyin şəhəri dəyişməyəcək.',
+      'Gedəcəyin şəhəri və neçə günlük səyahət etdiyini yaz — 1 həftəlik hava proqnozuna əsasən valizə qoyulacaq paltarları seçək.',
     travelInputPlaceholder: 'Gedəcəyin şəhəri yaz (məs: London, Dubai, Rome)...',
-    travelNotePlaceholder: 'Qeyd (məs: 3 günlük iş səfəri, axşam tədbiri)',
-    travelSaveBtn: 'Şəhəri qeyd et və tətbiq et',
+    travelDaysLabel: 'Səyahət müddəti (gün)',
+    travelNotePlaceholder: 'Əlavə qeyd (məs: iş səfəri, gəzinti)',
+    travelSaveBtn: 'Şəhəri qeyd et və valizi hazırla',
     travelSavedListTitle: 'Qeyd etdiyin səyahət şəhərləri',
     useCityBtn: 'Bu şəhəri seç',
     removeCityBtn: 'Çıxar',
     travelEmptyMsg: 'Hələ səyahət şəhəri qeyd etməmisən. Yuxarıdan gedəcəyin şəhəri əlavə et.',
-    travelSetToast: 'Səyahət şəhəri aktivləşdirildi və yadda saxlanıldı.',
+    weeklyForecastTitle: '1 həftəlik (7 günlük) hava proqnozu',
+    suitcaseTitle: 'Valizə qoyulacaq geyimlər (Qarderobundan)',
+    suitcaseSummary: 'günlük səyahət • 7 günlük proqnoza uyğun seçildi',
+    rainyWeekNote: 'Həftə ərzində yağış ehtimalı yüksəkdir — suya davamlı geyimlərə üstünlük verildi.',
+    coldWeekNote: 'Həftə ərzində sərin/soyuq günlər var — üst örtük və isti parçalar əlavə olundu.',
+    warmWeekNote: 'Həftə ərzində mülayim/isti hava gözlənilir — yüngül və nəfəs alan parçalar seçildi.',
+    emptySuitcaseMsg: 'Valiz tövsiyəsi qurmaq üçün əvvəlcə qarderobuna paltar əlavə et.',
+    daysUnit: 'günlük',
     emptyWardrobeOutfit:
       'Qarderobunda hələ paltar yoxdur. Aşağıdan üst geyim, alt geyim və ayaqqabı əlavə et ki, avtomatik kombin quraq!',
     locked: 'Kilidli',
@@ -231,7 +239,7 @@ const UI_TEXT = {
     noAccount: "Don't have an account? Create one",
     logout: 'Sign out',
     tabToday: 'Today Weather & Outfit',
-    tabTravel: 'Travel City (2nd Tab)',
+    tabTravel: 'Travel City',
     liveWeatherTitle: 'Live Weather & Smart Outfit',
     gpsFinding: 'Detecting location via GPS...',
     gpsFound: 'Located via GPS',
@@ -261,17 +269,25 @@ const UI_TEXT = {
     saveOutfit: 'Save outfit',
     savedToast: 'Outfit added to Saved Outfits!',
     loadedToast: 'Saved outfit loaded into main view.',
-    travelTitle: 'Travel & Planned City',
+    travelTitle: 'Travel & 1-Week Suitcase Guide',
     travelSubtitle:
-      'Enter the city you are traveling to or want to check — GPS will not overwrite your chosen city.',
+      'Enter your destination city and how many days you are traveling — we pick suitcase items from your wardrobe based on the 7-day forecast.',
     travelInputPlaceholder: 'Enter destination city (e.g. London, Dubai, Rome)...',
-    travelNotePlaceholder: 'Note (e.g. 3-day trip, evening dinner)',
-    travelSaveBtn: 'Save & apply city',
+    travelDaysLabel: 'Trip length (days)',
+    travelNotePlaceholder: 'Note (e.g. work trip, sightseeing)',
+    travelSaveBtn: 'Save city & build suitcase',
     travelSavedListTitle: 'Saved travel cities',
     useCityBtn: 'Use city',
     removeCityBtn: 'Remove',
     travelEmptyMsg: 'No travel cities saved yet. Add a destination city above.',
-    travelSetToast: 'Travel city activated and saved.',
+    weeklyForecastTitle: '1-Week (7-Day) Forecast',
+    suitcaseTitle: 'Suggested Suitcase Items (From Your Wardrobe)',
+    suitcaseSummary: 'day trip • tailored to 7-day forecast',
+    rainyWeekNote: 'High chance of rain during the week — waterproof items were prioritized.',
+    coldWeekNote: 'Cool/cold days expected — outerwear and warmer pieces were included.',
+    warmWeekNote: 'Mild/warm days expected — lighter and breathable pieces were prioritized.',
+    emptySuitcaseMsg: 'Add items to your wardrobe first to get suitcase recommendations.',
+    daysUnit: 'days',
     emptyWardrobeOutfit:
       'Your wardrobe is empty. Add tops, bottoms, and shoes below to generate smart outfits!',
     locked: 'Locked',
@@ -334,7 +350,7 @@ const UI_TEXT = {
     noAccount: 'Нет аккаунта? Зарегистрироваться',
     logout: 'Выйти',
     tabToday: 'Погода и образ',
-    tabTravel: 'Город поездки (2-я вкладка)',
+    tabTravel: 'Город поездки',
     liveWeatherTitle: 'Погода и умный образ',
     gpsFinding: 'Определение по GPS...',
     gpsFound: 'Определено по GPS',
@@ -364,17 +380,25 @@ const UI_TEXT = {
     saveOutfit: 'Сохранить',
     savedToast: 'Образ добавлен в «Избранные образы»!',
     loadedToast: 'Сохраненный образ загружен.',
-    travelTitle: 'Поездка и планируемый город',
+    travelTitle: 'Поездка и сбор чемодана на неделю',
     travelSubtitle:
-      'Укажите город поездки — GPS не будет перезаписывать выбранный вами город.',
+      'Укажите город и сколько дней продлится поездка — подберем вещи из гардероба по прогнозу на 7 дней.',
     travelInputPlaceholder: 'Введите город (напр. Лондон, Дубай, Рим)...',
-    travelNotePlaceholder: 'Заметка (напр. поездка на 3 дня, ужин)',
-    travelSaveBtn: 'Сохранить и применить',
+    travelDaysLabel: 'Длительность (дней)',
+    travelNotePlaceholder: 'Заметка (напр. командировка, прогулки)',
+    travelSaveBtn: 'Сохранить и собрать чемодан',
     travelSavedListTitle: 'Сохраненные города поездок',
     useCityBtn: 'Выбрать',
     removeCityBtn: 'Удалить',
     travelEmptyMsg: 'Пока нет сохраненных городов поездки. Добавьте город выше.',
-    travelSetToast: 'Город поездки активирован и сохранен.',
+    weeklyForecastTitle: 'Прогноз погоды на 1 неделю (7 дней)',
+    suitcaseTitle: 'Рекомендуемые вещи в чемодан (из гардероба)',
+    suitcaseSummary: 'дн. поездка • по прогнозу на 7 дней',
+    rainyWeekNote: 'На неделе ожидаются осадки — учтены влагозащитные вещи.',
+    coldWeekNote: 'Ожидаются прохладные/холодные дни — добавлена верхняя одежда.',
+    warmWeekNote: 'Ожидается теплая погода — выбраны более легкие вещи.',
+    emptySuitcaseMsg: 'Сначала добавьте вещи в гардероб для подбора чемодана.',
+    daysUnit: 'дн.',
     emptyWardrobeOutfit:
       'В гардеробе пока нет вещей. Добавьте верх, низ и обувь ниже для умного подбора!',
     locked: 'Закреплено',
@@ -678,6 +702,91 @@ function buildSmartOutfit(
   return nextOutfit;
 }
 
+function buildSuitcasePlan(items, weeklyDays, tripDays, lang = 'az') {
+  if (!items || items.length === 0) {
+    return { suggestedItems: [], note: '' };
+  }
+
+  const daysToUse = weeklyDays && weeklyDays.length > 0 ? weeklyDays : [];
+  const avgMax =
+    daysToUse.length > 0
+      ? daysToUse.reduce((s, d) => s + d.maxTemp, 0) / daysToUse.length
+      : 18;
+  const avgMin =
+    daysToUse.length > 0
+      ? daysToUse.reduce((s, d) => s + d.minTemp, 0) / daysToUse.length
+      : 10;
+  const maxRainProb =
+    daysToUse.length > 0 ? Math.max(...daysToUse.map((d) => d.rainProb || 0)) : 0;
+
+  const isRainyWeek = maxRainProb >= 50;
+  const isColdWeek = avgMin <= 10 || avgMax <= 14;
+
+  let idealWarmth = 3;
+  if (avgMax <= 6) idealWarmth = 5;
+  else if (avgMax <= 13) idealWarmth = 4;
+  else if (avgMax <= 20) idealWarmth = 3;
+  else if (avgMax <= 26) idealWarmth = 2;
+  else idealWarmth = 1;
+
+  const clampedDays = Math.max(1, Math.min(14, Number(tripDays) || 3));
+  const topCount = Math.min(items.filter((i) => i.category === 'Üst geyim').length, Math.max(1, Math.min(7, clampedDays)));
+  const bottomCount = Math.min(
+    items.filter((i) => i.category === 'Alt geyim').length,
+    Math.max(1, Math.min(4, Math.ceil(clampedDays / 2)))
+  );
+  const outerwearCount = Math.min(
+    items.filter((i) => i.category === 'Üst örtük (Gödəkçə/Palto)').length,
+    isColdWeek || isRainyWeek ? 2 : 1
+  );
+  const shoesCount = Math.min(
+    items.filter((i) => i.category === 'Ayaqqabı').length,
+    clampedDays >= 4 ? 2 : 1
+  );
+  const accessoryCount = Math.min(items.filter((i) => i.category === 'Aksesuar').length, 1);
+
+  const scoreAndPick = (catName, count) => {
+    const pool = items.filter((i) => i.category === catName);
+    const ranked = [...pool].sort((a, b) => {
+      const scoreA =
+        -Math.abs((a.warmth_level || 3) - idealWarmth) * 10 +
+        (isRainyWeek && a.waterproof ? 18 : 0) +
+        (isColdWeek && a.windproof ? 10 : 0);
+      const scoreB =
+        -Math.abs((b.warmth_level || 3) - idealWarmth) * 10 +
+        (isRainyWeek && b.waterproof ? 18 : 0) +
+        (isColdWeek && b.windproof ? 10 : 0);
+      return scoreB - scoreA;
+    });
+    return ranked.slice(0, count);
+  };
+
+  const suggestedItems = [
+    ...scoreAndPick('Üst geyim', topCount),
+    ...scoreAndPick('Alt geyim', bottomCount),
+    ...scoreAndPick('Üst örtük (Gödəkçə/Palto)', outerwearCount),
+    ...scoreAndPick('Ayaqqabı', shoesCount),
+    ...scoreAndPick('Aksesuar', accessoryCount),
+  ];
+
+  let note = '';
+  if (lang === 'en') {
+    if (isRainyWeek) note = 'High chance of rain during the week — waterproof items were prioritized.';
+    else if (isColdWeek) note = 'Cool/cold days expected — outerwear and warmer pieces were included.';
+    else note = 'Mild/warm days expected — lighter and breathable pieces were prioritized.';
+  } else if (lang === 'ru') {
+    if (isRainyWeek) note = 'На неделе ожидаются осадки — учтены влагозащитные вещи.';
+    else if (isColdWeek) note = 'Ожидаются прохладные/холодные дни — добавлена верхняя одежда.';
+    else note = 'Ожидается теплая погода — выбраны более легкие вещи.';
+  } else {
+    if (isRainyWeek) note = 'Həftə ərzində yağış ehtimalı yüksəkdir — suya davamlı geyimlərə üstünlük verildi.';
+    else if (isColdWeek) note = 'Həftə ərzində sərin/soyuq günlər var — üst örtük və isti parçalar əlavə olundu.';
+    else note = 'Həftə ərzində mülayim/isti hava gözlənilir — yüngül və nəfəs alan parçalar seçildi.';
+  }
+
+  return { suggestedItems, note };
+}
+
 export default function HomePage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -719,7 +828,7 @@ export default function HomePage() {
   const [style, setStyle] = useState('gundelik');
 
   // Location & Weather state
-  const [locationMode, setLocationMode] = useState('gps'); // 'gps' | 'manual'
+  const [locationMode, setLocationMode] = useState('gps');
   const [selectedCity, setSelectedCity] = useState('Bakı');
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [searchingCity, setSearchingCity] = useState(false);
@@ -733,10 +842,14 @@ export default function HomePage() {
   const [lockedSlots, setLockedSlots] = useState({});
   const [savedOutfits, setSavedOutfits] = useState([]);
 
-  // Travel / Planned city state (2nd tab)
+  // Travel / 1-week forecast & suitcase state
   const [travelCityInput, setTravelCityInput] = useState('');
+  const [travelDaysInput, setTravelDaysInput] = useState(4);
   const [travelNoteInput, setTravelNoteInput] = useState('');
   const [travelCities, setTravelCities] = useState([]);
+  const [activeTravelPlan, setActiveTravelPlan] = useState(null);
+  const [weeklyForecast, setWeeklyForecast] = useState([]);
+  const [loadingWeekly, setLoadingWeekly] = useState(false);
   const [savingTravelCity, setSavingTravelCity] = useState(false);
 
   useEffect(() => {
@@ -752,7 +865,11 @@ export default function HomePage() {
       }
       const savedTravelList = localStorage.getItem('geyin_travel_cities');
       if (savedTravelList) {
-        setTravelCities(JSON.parse(savedTravelList));
+        const parsed = JSON.parse(savedTravelList);
+        setTravelCities(parsed);
+        if (parsed.length > 0) {
+          setActiveTravelPlan(parsed[0]);
+        }
       }
     } catch {
       // ignore
@@ -765,6 +882,40 @@ export default function HomePage() {
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
+
+  const fetchWeeklyForecast = useCallback(async (lat, lon) => {
+    setLoadingWeekly(true);
+    try {
+      const res = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=7&timezone=auto`
+      );
+      const data = await res.json();
+      if (data?.daily?.time) {
+        const days = data.daily.time.map((dateStr, idx) => ({
+          date: dateStr,
+          maxTemp: Math.round(data.daily.temperature_2m_max?.[idx] ?? 0),
+          minTemp: Math.round(data.daily.temperature_2m_min?.[idx] ?? 0),
+          rainProb: data.daily.precipitation_probability_max?.[idx] ?? 0,
+        }));
+        setWeeklyForecast(days);
+      }
+    } catch {
+      setWeeklyForecast([]);
+    } finally {
+      setLoadingWeekly(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTravelPlan?.lat && activeTravelPlan?.lon) {
+      fetchWeeklyForecast(activeTravelPlan.lat, activeTravelPlan.lon);
+    }
+  }, [activeTravelPlan, fetchWeeklyForecast]);
+
+  const suitcasePlan = useMemo(
+    () => buildSuitcasePlan(items, weeklyForecast, activeTravelPlan?.days || travelDaysInput, lang),
+    [items, weeklyForecast, activeTravelPlan, travelDaysInput, lang]
+  );
 
   const handleSelectTheme = (mode) => {
     setThemeMode(mode);
@@ -1027,7 +1178,6 @@ export default function HomePage() {
     if (!q) return;
     setSavingTravelCity(true);
     setError('');
-    setMessage('');
 
     try {
       const geoRes = await fetch(
@@ -1045,12 +1195,14 @@ export default function HomePage() {
       const label = place.country_code
         ? `${place.name} (${place.country_code})`
         : place.name;
+      const daysVal = Math.max(1, Math.min(14, Number(travelDaysInput) || 3));
 
       const entry = {
         id: Date.now(),
         name: place.name,
         code: place.country_code || '',
         label,
+        days: daysVal,
         note: travelNoteInput.trim(),
         lat: place.latitude,
         lon: place.longitude,
@@ -1058,6 +1210,7 @@ export default function HomePage() {
 
       const nextList = [entry, ...travelCities.filter((c) => c.label !== label)].slice(0, 10);
       setTravelCities(nextList);
+      setActiveTravelPlan(entry);
       try {
         localStorage.setItem('geyin_travel_cities', JSON.stringify(nextList));
       } catch {
@@ -1068,10 +1221,9 @@ export default function HomePage() {
       persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
       setLocationSource(`${tx.travelPinned}: ${entry.label}`);
       await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
+      await fetchWeeklyForecast(entry.lat, entry.lon);
       setTravelCityInput('');
       setTravelNoteInput('');
-      setActiveTab('today');
-      setMessage(tx.travelSetToast);
     } catch {
       setError(tx.cityNotFound);
     } finally {
@@ -1080,16 +1232,20 @@ export default function HomePage() {
   };
 
   const handleSelectSavedTravelCity = async (entry) => {
+    setActiveTravelPlan(entry);
     setDemoPresetId('live');
     persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
     setLocationSource(`${tx.travelPinned}: ${entry.label}`);
     await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
-    setActiveTab('today');
+    await fetchWeeklyForecast(entry.lat, entry.lon);
   };
 
   const handleRemoveTravelCity = (id) => {
     const nextList = travelCities.filter((c) => c.id !== id);
     setTravelCities(nextList);
+    if (activeTravelPlan?.id === id) {
+      setActiveTravelPlan(nextList[0] || null);
+    }
     try {
       localStorage.setItem('geyin_travel_cities', JSON.stringify(nextList));
     } catch {
@@ -1424,7 +1580,6 @@ export default function HomePage() {
 
   const renderTopControls = () => (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Language Switcher */}
       <div
         className={`inline-flex items-center rounded-xl p-1 border text-xs ${
           isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-stone-200/70 border-stone-300'
@@ -1448,7 +1603,6 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Theme Switcher */}
       <div
         className={`inline-flex items-center rounded-xl p-1 border text-xs ${
           isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-stone-200/70 border-stone-300'
@@ -1645,32 +1799,126 @@ export default function HomePage() {
               <p className={`text-xs ${t.muted} mt-1`}>{tx.travelSubtitle}</p>
             </div>
 
-            <form onSubmit={handleAddTravelCity} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <form onSubmit={handleAddTravelCity} className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <input
                 type="text"
                 required
                 value={travelCityInput}
                 onChange={(e) => setTravelCityInput(e.target.value)}
                 placeholder={tx.travelInputPlaceholder}
-                className={`rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
+                className={`md:col-span-2 rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
               />
+              <div>
+                <label className={`block text-[10px] ${t.muted} mb-1`}>{tx.travelDaysLabel}</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={14}
+                  value={travelDaysInput}
+                  onChange={(e) => setTravelDaysInput(e.target.value)}
+                  className={`w-full rounded-xl ${t.surface} border px-3.5 py-2 text-xs focus:outline-none`}
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={savingTravelCity}
+                  className={`w-full rounded-xl ${t.pillActive} disabled:opacity-50 px-4 py-2.5 text-xs font-semibold transition cursor-pointer active:scale-95`}
+                >
+                  {savingTravelCity ? tx.searching : tx.travelSaveBtn}
+                </button>
+              </div>
               <input
                 type="text"
                 value={travelNoteInput}
                 onChange={(e) => setTravelNoteInput(e.target.value)}
                 placeholder={tx.travelNotePlaceholder}
-                className={`rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
+                className={`md:col-span-4 rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
               />
-              <button
-                type="submit"
-                disabled={savingTravelCity}
-                className={`rounded-xl ${t.pillActive} disabled:opacity-50 px-4 py-2.5 text-xs font-semibold transition cursor-pointer active:scale-95`}
-              >
-                {savingTravelCity ? tx.searching : tx.travelSaveBtn}
-              </button>
             </form>
 
-            <div className="space-y-3 pt-2 border-t border-zinc-800/40">
+            {/* 1-Week Forecast */}
+            {activeTravelPlan && (
+              <div className={`space-y-3 pt-4 border-t ${t.border}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold">
+                    {tx.weeklyForecastTitle} — {activeTravelPlan.label} ({activeTravelPlan.days || 3}{' '}
+                    {tx.daysUnit})
+                  </h3>
+                  {activeTravelPlan.note && (
+                    <span className={`text-xs ${t.muted}`}>{activeTravelPlan.note}</span>
+                  )}
+                </div>
+
+                {loadingWeekly ? (
+                  <p className={`text-xs ${t.muted}`}>{tx.checkingWeather}</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
+                    {weeklyForecast.map((day) => (
+                      <div
+                        key={day.date}
+                        className={`rounded-xl ${t.surface} border p-3 text-center space-y-1`}
+                      >
+                        <p className={`text-[11px] font-semibold ${t.subtext}`}>{day.date}</p>
+                        <p className="text-sm font-bold">
+                          {day.maxTemp}° / {day.minTemp}°
+                        </p>
+                        <p className="text-[11px] text-sky-400">💧 {day.rainProb}%</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Suitcase Items */}
+            {activeTravelPlan && (
+              <div className={`space-y-3 pt-4 border-t ${t.border}`}>
+                <div>
+                  <h3 className="text-sm font-semibold">{tx.suitcaseTitle}</h3>
+                  <p className={`text-xs ${t.muted} mt-0.5`}>
+                    {activeTravelPlan.days || 3} {tx.suitcaseSummary}
+                  </p>
+                  {suitcasePlan.note && (
+                    <p className="text-xs text-emerald-400 mt-1">{suitcasePlan.note}</p>
+                  )}
+                </div>
+
+                {suitcasePlan.suggestedItems.length === 0 ? (
+                  <p className={`text-xs ${t.muted}`}>{tx.emptySuitcaseMsg}</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {suitcasePlan.suggestedItems.map((piece) => (
+                      <div
+                        key={piece.id}
+                        className={`rounded-xl ${t.surface} border overflow-hidden flex flex-col`}
+                      >
+                        <img
+                          src={piece.image_url}
+                          alt={piece.sub_category || getCategoryLabel(piece.category)}
+                          className="w-full h-32 object-cover"
+                        />
+                        <div className="p-2.5 space-y-1">
+                          <p className="text-[11px] font-semibold truncate">
+                            {getCategoryLabel(piece.category)}
+                          </p>
+                          <p className="text-xs font-medium truncate">
+                            {piece.sub_category || piece.color || '-'}
+                          </p>
+                          <p className={`text-[11px] ${t.muted}`}>
+                            {tx.warmthShort} {piece.warmth_level}/5
+                            {piece.waterproof ? ` • ${tx.waterproofBadge}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Saved Travel Cities */}
+            <div className={`space-y-3 pt-4 border-t ${t.border}`}>
               <h3 className="text-sm font-semibold">{tx.travelSavedListTitle}</h3>
               {travelCities.length === 0 ? (
                 <p className={`text-xs ${t.muted}`}>{tx.travelEmptyMsg}</p>
@@ -1682,7 +1930,9 @@ export default function HomePage() {
                       className={`rounded-xl ${t.surface} border p-3.5 flex items-center justify-between gap-3`}
                     >
                       <div>
-                        <p className="text-xs font-semibold">{c.label}</p>
+                        <p className="text-xs font-semibold">
+                          {c.label} • {c.days || 3} {tx.daysUnit}
+                        </p>
                         {c.note && <p className={`text-[11px] ${t.muted} mt-0.5`}>{c.note}</p>}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
@@ -1754,7 +2004,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* World City Search */}
             <form onSubmit={handleWorldCitySearch} className="flex flex-wrap gap-2">
               <input
                 type="text"
@@ -1772,7 +2021,6 @@ export default function HomePage() {
               </button>
             </form>
 
-            {/* Demo Day Weather Simulator bar */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <span className={`text-[11px] ${t.muted} mr-1`}>{tx.demoMode}</span>
               {DEMO_PRESETS.map((preset) => (
@@ -1791,7 +2039,6 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* General advice & Evening alert */}
             {activeWeather && (
               <div className="space-y-2.5">
                 <div className={`rounded-xl ${t.surface} border p-4`}>
@@ -1809,7 +2056,6 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Smart Wardrobe Outfit */}
             <div className={`space-y-4 pt-2 border-t ${t.border}`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
