@@ -1,4 +1,3 @@
-```jsx
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
@@ -638,12 +637,6 @@ export default function HomePage() {
   const [lang, setLang] = useState('az');
   const tx = UI_TEXT[lang] || UI_TEXT.az;
 
-  const getCategoryLabel = (catValue) => {
-    const found = CATEGORIES.find((c) => c.value === catValue);
-    if (!found) return catValue;
-    return found.label[lang] || found.label.az;
-  };
-
   // Theme state: 'auto' | 'light' | 'dark'
   const [themeMode, setThemeMode] = useState('auto');
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
@@ -659,7 +652,7 @@ export default function HomePage() {
   const [items, setItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
   const [uploading, setUploading] = useState(false);
-    const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('Hamısı');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('Hamısı');
 
   // Form state for new item
   const [imageFile, setImageFile] = useState(null);
@@ -677,7 +670,6 @@ export default function HomePage() {
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [searchingCity, setSearchingCity] = useState(false);
   const [locationSource, setLocationSource] = useState(UI_TEXT.az.gpsFinding);
-  const [lastCoords, setLastCoords] = useState({ lat: 40.4093, lon: 49.8671, label: 'Bakı' });
   const [liveRawWeather, setLiveRawWeather] = useState(null);
   const [demoPresetId, setDemoPresetId] = useState('live');
   const [loadingWeather, setLoadingWeather] = useState(false);
@@ -729,6 +721,13 @@ export default function HomePage() {
   };
 
   const isDark = themeMode === 'dark' || (themeMode === 'auto' && systemPrefersDark);
+
+  const getCategoryLabel = (catValue) => {
+    const rawVal = typeof catValue === 'string' ? catValue : catValue?.value;
+    const found = CATEGORIES.find((c) => c.value === rawVal);
+    if (!found) return rawVal || '';
+    return found.label[lang] || found.label.az;
+  };
 
   useEffect(() => {
     if (!imageFile) {
@@ -827,7 +826,6 @@ export default function HomePage() {
 
   const fetchWeatherByCoords = useCallback(async (lat, lon, label) => {
     setLoadingWeather(true);
-    setLastCoords({ lat, lon, label });
     try {
       const res = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability&forecast_days=1&timezone=auto`
@@ -1099,7 +1097,7 @@ export default function HomePage() {
     setSubmitting(true);
 
     try {
-            if (isRegister) {
+      if (isRegister) {
         const { error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) throw signUpError;
         setMessage('OK');
@@ -1153,12 +1151,14 @@ export default function HomePage() {
         .getPublicUrl(fileName);
 
       const imageUrl = publicUrlData?.publicUrl;
+      const normalizedCategory =
+        typeof category === 'string' ? category : category?.value || CATEGORIES[0].value;
 
       const { error: insertError } = await supabase.from('wardrobe_items').insert([
         {
           user_id: user.id,
           image_url: imageUrl,
-          category,
+          category: normalizedCategory,
           sub_category: subCategory.trim() || null,
           color: color.trim() || null,
           warmth_level: Number(warmthLevel),
@@ -1761,7 +1761,7 @@ export default function HomePage() {
             <div>
               <label className={`block text-xs ${t.muted} mb-1.5`}>{tx.categoryLabel}</label>
               <select
-                value={category}
+                value={typeof category === 'string' ? category : category?.value}
                 onChange={(e) => setCategory(e.target.value)}
                 className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
               >
@@ -1867,6 +1867,7 @@ export default function HomePage() {
             </h2>
             <div className="flex flex-wrap gap-2">
               <button
+                type="button"
                 onClick={() => setSelectedCategoryFilter('Hamısı')}
                 className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${
                   selectedCategoryFilter === 'Hamısı' ? t.pillActive : `${t.pillIdle} border`
@@ -1877,6 +1878,7 @@ export default function HomePage() {
 
               {CATEGORIES.map((cat) => (
                 <button
+                  type="button"
                   key={cat.value}
                   onClick={() => setSelectedCategoryFilter(cat.value)}
                   className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${
@@ -1905,7 +1907,7 @@ export default function HomePage() {
                   <div>
                     <img
                       src={item.image_url}
-                      alt={item.sub_category || item.category}
+                      alt={item.sub_category || getCategoryLabel(item.category)}
                       className="w-full h-44 object-cover"
                     />
                     <div className="p-3.5 space-y-1.5">
