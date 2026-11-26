@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = [
@@ -217,6 +217,44 @@ const UI_TEXT = {
     auto: 'Avto',
     light: 'Açıq',
     dark: 'Qaranlıq',
+    signUpSuccess: 'Qeydiyyat tamamlandı! Hesabını təsdiqləmək üçün e-poçtunu yoxla.',
+    genericError: 'Xəta baş verdi.',
+    weatherFetchError: 'Hava məlumatı alınarkən xəta baş verdi.',
+    photoRequiredError: 'Zəhmət olmasa paltar şəkli seçin.',
+    previewAlt: 'Seçilmiş paltar şəklinin önizləməsi',
+    gpsLocationPrefix: 'GPS Məkanı',
+    demoSuffix: '(Demo Simulyasiya)',
+    wardrobeBalanced: 'Qarderobun bütün əsas kateqoriyalar üzrə balanslıdır.',
+    wardrobeMissingPrefix: 'Tam kombinlər üçün çatışmayan kateqoriya',
+    wardrobeWaterproofTip:
+      'Yağışlı günlər üçün qarderobuna ən azı 1 suya davamlı üst örtük və ya ayaqqabı əlavə etməyin tövsiyə olunur.',
+    weatherConditions: {
+      snow: 'Qarlı',
+      rain: 'Yağışlı',
+      fog: 'Dumanlı',
+      clear: 'Günəşli və açıq',
+      clouds: 'Dəyişkən buludlu',
+      default: 'Açıq / Buludlu',
+    },
+    weatherTips: {
+      veryCold: 'Hava çox soyuqdur: qalın palto/gödəkçə, sviter və qapalı isti ayaqqabı seç.',
+      chilly: 'Hava sərindir: qat-qat geyim (köynək/hudi + gödəkçə) ən ideal seçimdir.',
+      mild: 'Mülayim hava var: yüngül üst geyim və nazik pencək/jaket kifayət edər.',
+      warm: 'İsti və komfortlu havadır: nəfəs alan pambıq/kətan köynək və rahat şalvar uyğundur.',
+      hot: 'Çox isti havadır: açıq rəngli, çox nazik (istilik 1-2) parçalara üstünlük ver.',
+      precipitation: 'Yağıntı var: suya davamlı üst örtük və ayaqqabı götürməyi unutma.',
+      strongWind: 'Külək güclüdür ({wind} km/saat): küləyə davamlı gödəkçə geyin.',
+      eveningDrop:
+        'Axşam temperatur {minTemp}°C-yə qədər düşəcək — çölə çıxanda üst örtük götürməyin məsləhətdir.',
+      rainChance:
+        'Gün ərzində yağıntı ehtimalı {rainProb}%-dir — suya davamlı parça seçmək faydalı olar.',
+    },
+    outfitReasons: {
+      targetedWarmth: '{temp}°C hava üçün ideal istilik ({warmth}/5) hədəfləndi',
+      waterproof: 'yağışa qarşı suya davamlı parça seçildi',
+      windproof: 'küləyə davamlı qoruma əlavə edildi',
+      colorHarmony: '{colors} rəng harmoniyası uyğunlaşdırıldı',
+    },
     slotLabels: {
       top: 'Üst geyim',
       bottom: 'Alt geyim',
@@ -328,6 +366,42 @@ const UI_TEXT = {
     auto: 'Auto',
     light: 'Light',
     dark: 'Dark',
+    signUpSuccess: 'Account created! Please check your email to confirm your account.',
+    genericError: 'An error occurred.',
+    weatherFetchError: 'An error occurred while fetching weather data.',
+    photoRequiredError: 'Please select a clothing photo.',
+    previewAlt: 'Selected clothing preview',
+    gpsLocationPrefix: 'GPS Location',
+    demoSuffix: '(Demo)',
+    wardrobeBalanced: 'Your wardrobe is balanced across core categories.',
+    wardrobeMissingPrefix: 'Missing categories for full outfits',
+    wardrobeWaterproofTip: 'Consider adding at least 1 waterproof outer layer or shoe for rainy days.',
+    weatherConditions: {
+      snow: 'Snowy',
+      rain: 'Rainy',
+      fog: 'Foggy',
+      clear: 'Sunny & clear',
+      clouds: 'Partly cloudy',
+      default: 'Clear / Cloudy',
+    },
+    weatherTips: {
+      veryCold: 'Very cold: pick a heavy coat/jacket, knitwear, and warm closed shoes.',
+      chilly: 'Chilly weather: layering (tee/hoodie + jacket) works best.',
+      mild: 'Mild weather: a light top and thin jacket or overshirt is enough.',
+      warm: 'Warm & pleasant: breathable cotton/linen top and comfortable pants fit well.',
+      hot: 'Very hot: prefer light colors and thin (warmth 1–2) breathable fabrics.',
+      precipitation: "Precipitation expected: don't forget waterproof outerwear and shoes.",
+      strongWind: 'Strong wind ({wind} km/h): wear a windproof layer.',
+      eveningDrop:
+        'Temperature will drop to {minTemp}°C in the evening — taking an outer layer is recommended.',
+      rainChance: 'Precipitation chance today is {rainProb}% — a waterproof piece is helpful.',
+    },
+    outfitReasons: {
+      targetedWarmth: 'targeted warmth ({warmth}/5) for {temp}°C',
+      waterproof: 'added waterproof protection',
+      windproof: 'added windproof protection',
+      colorHarmony: 'balanced {colors} colors',
+    },
     slotLabels: {
       top: 'Top',
       bottom: 'Bottom',
@@ -439,6 +513,41 @@ const UI_TEXT = {
     auto: 'Авто',
     light: 'Светлая',
     dark: 'Темная',
+    signUpSuccess: 'Регистрация завершена! Проверьте эл. почту для подтверждения аккаунта.',
+    genericError: 'Произошла ошибка.',
+    weatherFetchError: 'Произошла ошибка при получении данных о погоде.',
+    photoRequiredError: 'Пожалуйста, выберите фото вещи.',
+    previewAlt: 'Предпросмотр выбранного фото',
+    gpsLocationPrefix: 'GPS точка',
+    demoSuffix: '(Демо)',
+    wardrobeBalanced: 'Гардероб сбалансирован по основным категориям.',
+    wardrobeMissingPrefix: 'Не хватает категорий для полного образа',
+    wardrobeWaterproofTip: 'Добавьте хотя бы 1 влагозащитную вещь для дождливых дней.',
+    weatherConditions: {
+      snow: 'Снежно',
+      rain: 'Дождливо',
+      fog: 'Туман',
+      clear: 'Ясно и солнечно',
+      clouds: 'Переменная облачность',
+      default: 'Ясно / Облачно',
+    },
+    weatherTips: {
+      veryCold: 'Очень холодно: выберите теплый пуховик/пальто, свитер и закрытую обувь.',
+      chilly: 'Прохладно: лучше всего подойдет многослойность (худи/рубашка + куртка).',
+      mild: 'Умеренная погода: хватит легкого верха и тонкой куртки или жакета.',
+      warm: 'Тепло и комфортно: подойдут дышащие ткани и удобные брюки.',
+      hot: 'Очень жарко: выбирайте светлые оттенки и тонкие ткани (тепло 1–2).',
+      precipitation: 'Осадки: возьмите влагозащитную верхнюю одежду и обувь.',
+      strongWind: 'Сильный ветер ({wind} км/ч): наденьте ветрозащитный слой.',
+      eveningDrop: 'Вечером температура опустится до {minTemp}°C — стоит взять верхнюю одежду.',
+      rainChance: 'Вероятность осадков за день {rainProb}% — пригодится влагозащита.',
+    },
+    outfitReasons: {
+      targetedWarmth: 'учтен уровень тепла ({warmth}/5) для {temp}°C',
+      waterproof: 'добавлена влагозащита',
+      windproof: 'добавлена ветрозащита',
+      colorHarmony: 'сочетание цветов {colors}',
+    },
     slotLabels: {
       top: 'Верх',
       bottom: 'Низ',
@@ -471,6 +580,32 @@ function getColorHarmonyBonus(colorA, colorB) {
   return 4;
 }
 
+const DATE_LOCALE_MAP = {
+  az: 'az-AZ',
+  en: 'en-US',
+  ru: 'ru-RU',
+};
+
+function formatForecastDate(dateStr, lang = 'az') {
+  if (!dateStr || typeof dateStr !== 'string') return dateStr || '';
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return dateStr;
+  const [year, month, day] = parts;
+  const dateObj = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(dateObj.getTime())) return dateStr;
+  try {
+    const locale = DATE_LOCALE_MAP[lang] || 'az-AZ';
+    return new Intl.DateTimeFormat(locale, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    }).format(dateObj);
+  } catch {
+    return dateStr;
+  }
+}
+
 function findNearestCity(lat, lon, lang = 'az') {
   let nearest = WORLD_CITIES[0];
   let minDist = Infinity;
@@ -484,8 +619,8 @@ function findNearestCity(lat, lon, lang = 'az') {
   if (minDist < 1.2) {
     return nearest.nameByLang ? nearest.nameByLang[lang] || nearest.name : nearest.name;
   }
-  const prefix = lang === 'en' ? 'GPS Location' : lang === 'ru' ? 'GPS точка' : 'GPS Məkanı';
-  return `${prefix} (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
+  const t = UI_TEXT[lang] || UI_TEXT.az;
+  return `${t.gpsLocationPrefix} (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
 }
 
 function interpretWeather(code, temp, windSpeed, hourlyForecast = null, lang = 'az') {
@@ -494,39 +629,9 @@ function interpretWeather(code, temp, windSpeed, hourlyForecast = null, lang = '
   const isSnowy = [71, 73, 75, 77, 85, 86].includes(code);
   const isWindy = windSpeed >= 25;
 
-  const condMap = {
-    az: {
-      snow: 'Qarlı',
-      rain: 'Yağışlı',
-      fog: 'Dumanlı',
-      clear: 'Günəşli və açıq',
-      clouds: 'Dəyişkən buludlu',
-      default: 'Açıq / Buludlu',
-    },
-    en: {
-      snow: 'Snowy',
-      rain: 'Rainy',
-      fog: 'Foggy',
-      clear: 'Sunny & clear',
-      clouds: 'Partly cloudy',
-      default: 'Clear / Cloudy',
-    },
-    ru: {
-      snow: 'Снежно',
-      rain: 'Дождливо',
-      fog: 'Туман',
-      clear: 'Ясно и солнечно',
-      clouds: 'Переменная облачность',
-      default: 'Ясно / Облачно',
-    },
-  }[lang] || {
-    snow: 'Qarlı',
-    rain: 'Yağışlı',
-    fog: 'Dumanlı',
-    clear: 'Günəşli və açıq',
-    clouds: 'Dəyişkən buludlu',
-    default: 'Açıq / Buludlu',
-  };
+  const t = UI_TEXT[lang] || UI_TEXT.az;
+  const condMap = t.weatherConditions;
+  const wTips = t.weatherTips;
 
   let conditionText = condMap.default;
   if (isSnowy) conditionText = condMap.snow;
@@ -543,34 +648,14 @@ function interpretWeather(code, temp, windSpeed, hourlyForecast = null, lang = '
   else idealWarmth = 1;
 
   const tips = [];
-  if (lang === 'en') {
-    if (temp <= 5) tips.push('Very cold: pick a heavy coat/jacket, knitwear, and warm closed shoes.');
-    else if (temp <= 12) tips.push('Chilly weather: layering (tee/hoodie + jacket) works best.');
-    else if (temp <= 19) tips.push('Mild weather: a light top and thin jacket or overshirt is enough.');
-    else if (temp <= 26) tips.push('Warm & pleasant: breathable cotton/linen top and comfortable pants fit well.');
-    else tips.push('Very hot: prefer light colors and thin (warmth 1–2) breathable fabrics.');
+  if (temp <= 5) tips.push(wTips.veryCold);
+  else if (temp <= 12) tips.push(wTips.chilly);
+  else if (temp <= 19) tips.push(wTips.mild);
+  else if (temp <= 26) tips.push(wTips.warm);
+  else tips.push(wTips.hot);
 
-    if (isRainy || isSnowy) tips.push("Precipitation expected: don't forget waterproof outerwear and shoes.");
-    if (isWindy) tips.push(`Strong wind (${Math.round(windSpeed)} km/h): wear a windproof layer.`);
-  } else if (lang === 'ru') {
-    if (temp <= 5) tips.push('Очень холодно: выберите теплый пуховик/пальто, свитер и закрытую обувь.');
-    else if (temp <= 12) tips.push('Прохладно: лучше всего подойдет многослойность (худи/рубашка + куртка).');
-    else if (temp <= 19) tips.push('Умеренная погода: хватит легкого верха и тонкой куртки или жакета.');
-    else if (temp <= 26) tips.push('Тепло и комфортно: подойдут дышащие ткани и удобные брюки.');
-    else tips.push('Очень жарко: выбирайте светлые оттенки и тонкие ткани (тепло 1–2).');
-
-    if (isRainy || isSnowy) tips.push('Осадки: возьмите влагозащитную верхнюю одежду и обувь.');
-    if (isWindy) tips.push(`Сильный ветер (${Math.round(windSpeed)} км/ч): наденьте ветрозащитный слой.`);
-  } else {
-    if (temp <= 5) tips.push('Hava çox soyuqdur: qalın palto/gödəkçə, sviter və qapalı isti ayaqqabı seç.');
-    else if (temp <= 12) tips.push('Hava sərindir: qat-qat geyim (köynək/hudi + gödəkçə) ən ideal seçimdir.');
-    else if (temp <= 19) tips.push('Mülayim hava var: yüngül üst geyim və nazik pencək/jaket kifayət edər.');
-    else if (temp <= 26) tips.push('İsti və komfortlu havadır: nəfəs alan pambıq/kətan köynək və rahat şalvar uyğundur.');
-    else tips.push('Çox isti havadır: açıq rəngli, çox nazik (istilik 1-2) parçalara üstünlük ver.');
-
-    if (isRainy || isSnowy) tips.push('Yağıntı var: suya davamlı üst örtük və ayaqqabı götürməyi unutma.');
-    if (isWindy) tips.push(`Külək güclüdür (${Math.round(windSpeed)} km/saat): küləyə davamlı gödəkçə geyin.`);
-  }
+  if (isRainy || isSnowy) tips.push(wTips.precipitation);
+  if (isWindy) tips.push(wTips.strongWind.replace('{wind}', String(Math.round(windSpeed))));
 
   let eveningAlert = null;
   let eveningCoolDrop = false;
@@ -578,21 +663,9 @@ function interpretWeather(code, temp, windSpeed, hourlyForecast = null, lang = '
     const { minTemp, rainProb } = hourlyForecast;
     if (temp - minTemp >= 6 && minTemp <= 14) {
       eveningCoolDrop = true;
-      if (lang === 'en') {
-        eveningAlert = `Temperature will drop to ${minTemp}°C in the evening — taking an outer layer is recommended.`;
-      } else if (lang === 'ru') {
-        eveningAlert = `Вечером температура опустится до ${minTemp}°C — стоит взять верхнюю одежду.`;
-      } else {
-        eveningAlert = `Axşam temperatur ${minTemp}°C-yə qədər düşəcək — çölə çıxanda üst örtük götürməyin məsləhətdir.`;
-      }
+      eveningAlert = wTips.eveningDrop.replace('{minTemp}', String(minTemp));
     } else if (!isRainy && rainProb >= 55) {
-      if (lang === 'en') {
-        eveningAlert = `Precipitation chance today is ${rainProb}% — a waterproof piece is helpful.`;
-      } else if (lang === 'ru') {
-        eveningAlert = `Вероятность осадков за день ${rainProb}% — пригодится влагозащита.`;
-      } else {
-        eveningAlert = `Gün ərzində yağıntı ehtimalı ${rainProb}%-dir — suya davamlı parça seçmək faydalı olar.`;
-      }
+      eveningAlert = wTips.rainChance.replace('{rainProb}', String(rainProb));
     }
   }
 
@@ -623,27 +696,18 @@ function buildOutfitExplanation(outfit, weatherInfo, lang = 'az') {
   const hasWaterproof = selected.some((i) => i.waterproof);
   const hasWindproof = selected.some((i) => i.windproof);
   const colors = selected.map((i) => i.color).filter(Boolean);
+  const r = (UI_TEXT[lang] || UI_TEXT.az).outfitReasons;
 
-  if (lang === 'en') {
-    const reasons = [`targeted warmth (${weatherInfo.idealWarmth}/5) for ${weatherInfo.temp}°C`];
-    if (weatherInfo.isRainy && hasWaterproof) reasons.push('added waterproof protection');
-    if (weatherInfo.isWindy && hasWindproof) reasons.push('added windproof protection');
-    if (colors.length >= 2) reasons.push(`balanced ${colors.slice(0, 3).join(' + ')} colors`);
-    return reasons.join(', ') + '.';
+  const reasons = [
+    r.targetedWarmth
+      .replace('{warmth}', String(weatherInfo.idealWarmth))
+      .replace('{temp}', String(weatherInfo.temp)),
+  ];
+  if (weatherInfo.isRainy && hasWaterproof) reasons.push(r.waterproof);
+  if (weatherInfo.isWindy && hasWindproof) reasons.push(r.windproof);
+  if (colors.length >= 2) {
+    reasons.push(r.colorHarmony.replace('{colors}', colors.slice(0, 3).join(' + ')));
   }
-
-  if (lang === 'ru') {
-    const reasons = [`учтен уровень тепла (${weatherInfo.idealWarmth}/5) для ${weatherInfo.temp}°C`];
-    if (weatherInfo.isRainy && hasWaterproof) reasons.push('добавлена влагозащита');
-    if (weatherInfo.isWindy && hasWindproof) reasons.push('добавлена ветрозащита');
-    if (colors.length >= 2) reasons.push(`сочетание цветов ${colors.slice(0, 3).join(' + ')}`);
-    return reasons.join(', ') + '.';
-  }
-
-  const reasons = [`${weatherInfo.temp}°C hava üçün ideal istilik (${weatherInfo.idealWarmth}/5) hədəfləndi`];
-  if (weatherInfo.isRainy && hasWaterproof) reasons.push('yağışa qarşı suya davamlı parça seçildi');
-  if (weatherInfo.isWindy && hasWindproof) reasons.push('küləyə davamlı qoruma əlavə edildi');
-  if (colors.length >= 2) reasons.push(`${colors.slice(0, 3).join(' + ')} rəng harmoniyası uyğunlaşdırıldı`);
   return reasons.join(', ') + '.';
 }
 
@@ -769,20 +833,8 @@ function buildSuitcasePlan(items, weeklyDays, tripDays, lang = 'az') {
     ...scoreAndPick('Aksesuar', accessoryCount),
   ];
 
-  let note = '';
-  if (lang === 'en') {
-    if (isRainyWeek) note = 'High chance of rain during the week — waterproof items were prioritized.';
-    else if (isColdWeek) note = 'Cool/cold days expected — outerwear and warmer pieces were included.';
-    else note = 'Mild/warm days expected — lighter and breathable pieces were prioritized.';
-  } else if (lang === 'ru') {
-    if (isRainyWeek) note = 'На неделе ожидаются осадки — учтены влагозащитные вещи.';
-    else if (isColdWeek) note = 'Ожидаются прохладные/холодные дни — добавлена верхняя одежда.';
-    else note = 'Ожидается теплая погода — выбраны более легкие вещи.';
-  } else {
-    if (isRainyWeek) note = 'Həftə ərzində yağış ehtimalı yüksəkdir — suya davamlı geyimlərə üstünlük verildi.';
-    else if (isColdWeek) note = 'Həftə ərzində sərin/soyuq günlər var — üst örtük və isti parçalar əlavə olundu.';
-    else note = 'Həftə ərzində mülayim/isti hava gözlənilir — yüngül və nəfəs alan parçalar seçildi.';
-  }
+  const t = UI_TEXT[lang] || UI_TEXT.az;
+  const note = isRainyWeek ? t.rainyWeekNote : isColdWeek ? t.coldWeekNote : t.warmWeekNote;
 
   return { suggestedItems, note };
 }
@@ -798,6 +850,17 @@ export default function HomePage() {
   // Language state: 'az' | 'en' | 'ru'
   const [lang, setLang] = useState('az');
   const tx = UI_TEXT[lang] || UI_TEXT.az;
+  const txRef = useRef(tx);
+
+  useEffect(() => {
+    txRef.current = tx;
+  }, [tx]);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = lang;
+    }
+  }, [lang]);
 
   // Theme state: 'auto' | 'light' | 'dark'
   const [themeMode, setThemeMode] = useState('auto');
@@ -832,7 +895,10 @@ export default function HomePage() {
   const [selectedCity, setSelectedCity] = useState('Bakı');
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [searchingCity, setSearchingCity] = useState(false);
-  const [locationSource, setLocationSource] = useState(UI_TEXT.az.gpsFinding);
+  const [locationSourceState, setLocationSourceState] = useState({ key: 'gpsFinding', detail: '' });
+  const locationSource = locationSourceState.detail
+    ? `${tx[locationSourceState.key]}: ${locationSourceState.detail}`
+    : tx[locationSourceState.key];
   const [liveRawWeather, setLiveRawWeather] = useState(null);
   const [demoPresetId, setDemoPresetId] = useState('live');
   const [loadingWeather, setLoadingWeather] = useState(false);
@@ -986,16 +1052,14 @@ export default function HomePage() {
       },
       lang
     );
-    const demoSuffix =
-      lang === 'en' ? '(Demo)' : lang === 'ru' ? '(Демо)' : '(Demo Simulyasiya)';
     return {
-      locationName: `${liveRawWeather?.locationName || selectedCity} ${demoSuffix}`,
+      locationName: `${liveRawWeather?.locationName || selectedCity} ${tx.demoSuffix}`,
       temp: preset.temp,
       apparent: preset.apparent,
       wind: preset.wind,
       ...info,
     };
-  }, [demoPresetId, liveRawWeather, selectedCity, lang]);
+  }, [demoPresetId, liveRawWeather, selectedCity, lang, tx.demoSuffix]);
 
   const wardrobeInsights = useMemo(() => {
     if (!items || items.length === 0) return null;
@@ -1008,27 +1072,12 @@ export default function HomePage() {
       (cat) => cat.value !== 'Aksesuar' && !items.some((i) => i.category === cat.value)
     ).map((cat) => cat.label[lang] || cat.label.az);
 
-    let suggestion =
-      lang === 'en'
-        ? 'Your wardrobe is balanced across core categories.'
-        : lang === 'ru'
-        ? 'Гардероб сбалансирован по основным категориям.'
-        : 'Qarderobun bütün əsas kateqoriyalar üzrə balanslıdır.';
+    let suggestion = tx.wardrobeBalanced;
 
     if (missingCategories.length > 0) {
-      suggestion =
-        lang === 'en'
-          ? `Missing categories for full outfits: ${missingCategories.join(', ')}.`
-          : lang === 'ru'
-          ? `Не хватает категорий для полного образа: ${missingCategories.join(', ')}.`
-          : `Tam kombinlər üçün çatışmayan kateqoriya: ${missingCategories.join(', ')}.`;
+      suggestion = `${tx.wardrobeMissingPrefix}: ${missingCategories.join(', ')}.`;
     } else if (!hasWaterproof) {
-      suggestion =
-        lang === 'en'
-          ? 'Consider adding at least 1 waterproof outer layer or shoe for rainy days.'
-          : lang === 'ru'
-          ? 'Добавьте хотя бы 1 влагозащитную вещь для дождливых дней.'
-          : 'Yağışlı günlər üçün qarderobuna ən azı 1 suya davamlı üst örtük və ya ayaqqabı əlavə etməyin tövsiyə olunur.';
+      suggestion = tx.wardrobeWaterproofTip;
     }
 
     return {
@@ -1037,7 +1086,7 @@ export default function HomePage() {
       waterproofCount: items.filter((i) => i.waterproof).length,
       suggestion,
     };
-  }, [items, lang]);
+  }, [items, lang, tx]);
 
   const fetchWeatherByCoords = useCallback(async (lat, lon, label) => {
     setLoadingWeather(true);
@@ -1068,7 +1117,7 @@ export default function HomePage() {
         });
       }
     } catch {
-      setError('Hava məlumatı alınarkən xəta baş verdi.');
+      setError(txRef.current.weatherFetchError);
     } finally {
       setLoadingWeather(false);
     }
@@ -1096,13 +1145,13 @@ export default function HomePage() {
     }
 
     if (typeof window === 'undefined' || !navigator.geolocation) {
-      setLocationSource(tx.gpsUnsupported);
+      setLocationSourceState({ key: 'gpsUnsupported', detail: '' });
       const fallback = WORLD_CITIES[0];
       fetchWeatherByCoords(fallback.lat, fallback.lon, `${fallback.name} (${fallback.code})`);
       return;
     }
 
-    setLocationSource(tx.gpsFinding);
+    setLocationSourceState({ key: 'gpsFinding', detail: '' });
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -1111,18 +1160,18 @@ export default function HomePage() {
           (c) => c.name === nearestName || (c.nameByLang && c.nameByLang[lang] === nearestName)
         );
         if (matchedCity) setSelectedCity(matchedCity.name);
-        setLocationSource(tx.gpsFound);
+        setLocationSourceState({ key: 'gpsFound', detail: '' });
         fetchWeatherByCoords(latitude, longitude, nearestName);
       },
       () => {
-        setLocationSource(tx.gpsDenied);
+        setLocationSourceState({ key: 'gpsDenied', detail: '' });
         const fallback =
           WORLD_CITIES.find((c) => c.name === selectedCity) || WORLD_CITIES[0];
         fetchWeatherByCoords(fallback.lat, fallback.lon, `${fallback.name} (${fallback.code})`);
       },
       { timeout: 8000 }
     );
-  }, [fetchWeatherByCoords, selectedCity, tx, lang]);
+  }, [fetchWeatherByCoords, selectedCity, lang]);
 
   const handleCitySelect = (cityName) => {
     setDemoPresetId('live');
@@ -1132,7 +1181,7 @@ export default function HomePage() {
       const displayCity = cityObj.nameByLang ? cityObj.nameByLang[lang] || cityObj.name : cityObj.name;
       const fullLabel = `${displayCity} (${cityObj.code})`;
       persistManualLocation(cityObj.name, cityObj.lat, cityObj.lon, fullLabel);
-      setLocationSource(tx.citySelected);
+      setLocationSourceState({ key: 'citySelected', detail: '' });
       fetchWeatherByCoords(cityObj.lat, cityObj.lon, fullLabel);
     }
   };
@@ -1144,10 +1193,11 @@ export default function HomePage() {
     setSearchingCity(true);
     setError('');
     try {
+      const geoLang = lang === 'ru' ? 'ru' : lang === 'en' ? 'en' : 'az';
       const geoRes = await fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
           q
-        )}&count=1&language=${lang === 'ru' ? 'ru' : lang === 'en' ? 'en' : 'en'}&format=json`
+        )}&count=1&language=${geoLang}&format=json`
       );
       const geoData = await geoRes.json();
       const place = geoData?.results?.[0];
@@ -1162,7 +1212,7 @@ export default function HomePage() {
         : place.name;
       setDemoPresetId('live');
       persistManualLocation(place.name, place.latitude, place.longitude, displayLabel);
-      setLocationSource(tx.citySearched);
+      setLocationSourceState({ key: 'citySearched', detail: '' });
       setCitySearchQuery('');
       await fetchWeatherByCoords(place.latitude, place.longitude, displayLabel);
     } catch {
@@ -1180,10 +1230,11 @@ export default function HomePage() {
     setError('');
 
     try {
+      const geoLang = lang === 'ru' ? 'ru' : lang === 'en' ? 'en' : 'az';
       const geoRes = await fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
           q
-        )}&count=1&language=${lang === 'ru' ? 'ru' : lang === 'en' ? 'en' : 'en'}&format=json`
+        )}&count=1&language=${geoLang}&format=json`
       );
       const geoData = await geoRes.json();
       const place = geoData?.results?.[0];
@@ -1219,7 +1270,7 @@ export default function HomePage() {
 
       setDemoPresetId('live');
       persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
-      setLocationSource(`${tx.travelPinned}: ${entry.label}`);
+      setLocationSourceState({ key: 'travelPinned', detail: entry.label });
       await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
       await fetchWeeklyForecast(entry.lat, entry.lon);
       setTravelCityInput('');
@@ -1235,7 +1286,7 @@ export default function HomePage() {
     setActiveTravelPlan(entry);
     setDemoPresetId('live');
     persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
-    setLocationSource(`${tx.travelPinned}: ${entry.label}`);
+    setLocationSourceState({ key: 'travelPinned', detail: entry.label });
     await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
     await fetchWeeklyForecast(entry.lat, entry.lon);
   };
@@ -1265,12 +1316,12 @@ export default function HomePage() {
     if (savedManual && typeof savedManual.lat === 'number' && typeof savedManual.lon === 'number') {
       setLocationMode('manual');
       if (savedManual.city) setSelectedCity(savedManual.city);
-      setLocationSource(tx.citySelected);
+      setLocationSourceState({ key: 'citySelected', detail: '' });
       fetchWeatherByCoords(savedManual.lat, savedManual.lon, savedManual.label || savedManual.city);
     } else {
       detectGpsLocation();
     }
-  }, [detectGpsLocation, fetchWeatherByCoords, tx.citySelected]);
+  }, [detectGpsLocation, fetchWeatherByCoords]);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -1444,7 +1495,7 @@ export default function HomePage() {
       if (isRegister) {
         const { error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) throw signUpError;
-        setMessage('OK');
+        setMessage(tx.signUpSuccess);
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -1453,7 +1504,7 @@ export default function HomePage() {
         if (signInError) throw signInError;
       }
     } catch (err) {
-      setError(err.message || 'Error');
+      setError(err?.message || tx.genericError);
     } finally {
       setSubmitting(false);
     }
@@ -1472,7 +1523,7 @@ export default function HomePage() {
     setMessage('');
 
     if (!imageFile) {
-      setError(tx.photoLabel);
+      setError(tx.photoRequiredError);
       return;
     }
 
@@ -1528,7 +1579,7 @@ export default function HomePage() {
 
       await fetchItems(user.id);
     } catch (err) {
-      setError(err.message || 'Error');
+      setError(err?.message || tx.genericError);
     } finally {
       setUploading(false);
     }
@@ -1554,7 +1605,7 @@ export default function HomePage() {
 
       setItems((prev) => prev.filter((i) => i.id !== item.id));
     } catch (err) {
-      setError(err.message || 'Error');
+      setError(err?.message || tx.genericError);
     }
   };
 
@@ -1864,7 +1915,9 @@ export default function HomePage() {
                         key={day.date}
                         className={`rounded-xl ${t.surface} border p-3 text-center space-y-1`}
                       >
-                        <p className={`text-[11px] font-semibold ${t.subtext}`}>{day.date}</p>
+                        <p className={`text-[11px] font-semibold ${t.subtext}`}>
+                          {formatForecastDate(day.date, lang)}
+                        </p>
                         <p className="text-sm font-bold">
                           {day.maxTemp}° / {day.minTemp}°
                         </p>
@@ -2293,7 +2346,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-3 pt-1 animate-outfit-in">
                   <img
                     src={imagePreviewUrl}
-                    alt="Preview"
+                    alt={tx.previewAlt}
                     className={`w-16 h-20 rounded-xl object-cover border ${t.border}`}
                   />
                   <span className={`text-xs ${t.muted}`}>{tx.previewReady}</span>
