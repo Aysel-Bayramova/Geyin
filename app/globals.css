@@ -153,11 +153,26 @@ body {
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
-.app-shell input:focus,
-.app-shell select:focus,
-.auth-shell input:focus {
-  border-color: var(--brand) !important;
-  box-shadow: 0 0 0 3px rgb(73 103 90 / 13%);
+.app-shell input:focus-visible,
+.app-shell select:focus-visible,
+.app-shell button:focus-visible,
+.auth-shell input:focus-visible,
+.auth-shell button:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 2px;
+  border-color: var(--brand-strong) !important;
+  box-shadow: 0 0 0 3px rgb(73 103 90 / 24%);
+}
+
+.app-shell[data-theme="dark"] input:focus-visible,
+.app-shell[data-theme="dark"] select:focus-visible,
+.app-shell[data-theme="dark"] button:focus-visible,
+.auth-shell.bg-zinc-950 input:focus-visible,
+.auth-shell.bg-zinc-950 button:focus-visible {
+  outline: 2px solid #c0d5c4;
+  outline-offset: 2px;
+  border-color: #c0d5c4 !important;
+  box-shadow: 0 0 0 3px rgb(192 213 196 / 28%);
 }
 
 .app-shell button,
