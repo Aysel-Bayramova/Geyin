@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = [
@@ -954,6 +954,40 @@ export default function HomePage() {
     return () => URL.revokeObjectURL(url);
   }, [imageFile]);
 
+  const outfitWeatherCore = useMemo(() => {
+    if (demoPresetId === 'live') {
+      if (!liveRawWeather) return null;
+      const info = interpretWeather(
+        liveRawWeather.code,
+        liveRawWeather.temp,
+        liveRawWeather.wind,
+        liveRawWeather.hourlyForecast
+      );
+      return {
+        temp: liveRawWeather.temp,
+        idealWarmth: info.idealWarmth,
+        isRainy: info.isRainy,
+        isWindy: info.isWindy,
+        needOuterwear: info.needOuterwear,
+      };
+    }
+
+    const preset = DEMO_PRESETS.find((p) => p.id === demoPresetId);
+    if (!preset) return null;
+    const info = interpretWeather(preset.code, preset.temp, preset.wind, {
+      minTemp: preset.minTemp,
+      maxTemp: preset.maxTemp,
+      rainProb: preset.rainProb,
+    });
+    return {
+      temp: preset.temp,
+      idealWarmth: info.idealWarmth,
+      isRainy: info.isRainy,
+      isWindy: info.isWindy,
+      needOuterwear: info.needOuterwear,
+    };
+  }, [demoPresetId, liveRawWeather]);
+
   const activeWeather = useMemo(() => {
     if (demoPresetId === 'live') {
       if (!liveRawWeather) return null;
@@ -1253,6 +1287,22 @@ export default function HomePage() {
     }
   };
 
+  const fetchItems = useCallback(async (userId) => {
+    setLoadingItems(true);
+    const { data, error: fetchError } = await supabase
+      .from('wardrobe_items')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (fetchError) {
+      setError(fetchError.message);
+    } else {
+      setItems(data || []);
+    }
+    setLoadingItems(false);
+  }, []);
+
   const initLocationOnLogin = useCallback(() => {
     let savedManual = null;
     try {
@@ -1272,53 +1322,81 @@ export default function HomePage() {
     }
   }, [detectGpsLocation, fetchWeatherByCoords, tx.citySelected]);
 
+  const initLocationOnLoginRef = useRef(initLocationOnLogin);
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      const currentUser = data?.session?.user ?? null;
-      setUser(currentUser);
-      setLoading(false);
-      if (currentUser) {
-        fetchItems(currentUser.id);
-        initLocationOnLogin();
-        try {
-          const raw = localStorage.getItem(`geyin_saved_${currentUser.id}`);
-          if (raw) setSavedOutfits(JSON.parse(raw));
-        } catch {
-          // ignore
-        }
-      }
-    };
+    initLocationOnLoginRef.current = initLocationOnLogin;
+  }, [initLocationOnLogin]);
 
-    checkSession();
+  const lockedSlotsRef = useRef(lockedSlots);
+  useEffect(() => {
+    lockedSlotsRef.current = lockedSlots;
+  }, [lockedSlots]);
+
+  const langRef = useRef(lang);
+  useEffect(() => {
+    langRef.current = lang;
+  }, [lang]);
+
+  useEffect(() => {
+    let active = true;
+    let loadedUserId = null;
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       setLoading(false);
+
       if (currentUser) {
-        fetchItems(currentUser.id);
-        initLocationOnLogin();
+        if (loadedUserId !== currentUser.id) {
+          loadedUserId = currentUser.id;
+          fetchItems(currentUser.id);
+          initLocationOnLoginRef.current();
+          try {
+            const raw = localStorage.getItem(`geyin_saved_${currentUser.id}`);
+            if (raw) setSavedOutfits(JSON.parse(raw));
+          } catch {
+            // ignore
+          }
+        }
       } else {
+        loadedUserId = null;
         setItems([]);
       }
     });
 
     return () => {
+      active = false;
       authListener.subscription.unsubscribe();
     };
-  }, [initLocationOnLogin]);
+  }, [fetchItems]);
 
   useEffect(() => {
-    if (activeWeather && items.length > 0) {
+    if (outfitWeatherCore && items.length > 0) {
       setRecommendedOutfit((prev) =>
-        buildSmartOutfit(items, activeWeather, outfitStyleFilter, lockedSlots, prev, {}, lang)
+        buildSmartOutfit(
+          items,
+          outfitWeatherCore,
+          outfitStyleFilter,
+          lockedSlotsRef.current,
+          prev,
+          {},
+          langRef.current
+        )
       );
       setOutfitAnimKey((k) => k + 1);
     } else {
       setRecommendedOutfit(null);
     }
-  }, [activeWeather, items, outfitStyleFilter, lang]);
+  }, [outfitWeatherCore, items, outfitStyleFilter]);
+
+  const displayedOutfitExplanation = useMemo(() => {
+    if (!recommendedOutfit) return '';
+    if (activeWeather) {
+      return buildOutfitExplanation(recommendedOutfit, activeWeather, lang);
+    }
+    return recommendedOutfit.explanation || '';
+  }, [recommendedOutfit, activeWeather, lang]);
 
   const handleRegenerateOutfit = () => {
     if (!activeWeather || items.length === 0) return;
@@ -1385,7 +1463,7 @@ export default function HomePage() {
         outerwear: recommendedOutfit.outerwear,
         shoes: recommendedOutfit.shoes,
         accessory: recommendedOutfit.accessory,
-        explanation: recommendedOutfit.explanation || '',
+        explanation: displayedOutfitExplanation || recommendedOutfit.explanation || '',
       },
       pieces,
     };
@@ -1416,22 +1494,6 @@ export default function HomePage() {
     } catch {
       // ignore
     }
-  };
-
-  const fetchItems = async (userId) => {
-    setLoadingItems(true);
-    const { data, error: fetchError } = await supabase
-      .from('wardrobe_items')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (fetchError) {
-      setError(fetchError.message);
-    } else {
-      setItems(data || []);
-    }
-    setLoadingItems(false);
   };
 
   const handleAuth = async (e) => {
@@ -2065,9 +2127,9 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-semibold">{tx.todayOutfitTitle}</h3>
-                  {recommendedOutfit?.explanation ? (
+                  {displayedOutfitExplanation ? (
                     <p className="text-xs text-emerald-500 mt-0.5">
-                      {tx.whyOutfit} {recommendedOutfit.explanation}
+                      {tx.whyOutfit} {displayedOutfitExplanation}
                     </p>
                   ) : (
                     <p className={`text-xs ${t.muted}`}>{tx.defaultOutfitSub}</p>
