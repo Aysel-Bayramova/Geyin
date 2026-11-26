@@ -1,7 +1,13 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import {
+  fetchCurrentWeather,
+  fetchDailyForecast,
+  searchGeocodingCity,
+  isAbortError,
+} from '@/lib/weather';
 
 const CATEGORIES = [
   {
@@ -147,6 +153,9 @@ const UI_TEXT = {
     searchBtn: 'Tap',
     searching: 'Axtarılır...',
     cityNotFound: 'Şəhər tapılmadı, başqa ad yoxlayın.',
+    weatherFetchError: 'Hava məlumatı alınarkən xəta baş verdi. Yenidən cəhd edin.',
+    weeklyForecastError: 'Həftəlik hava proqnozu yüklənə bilmədi. Yenidən cəhd edin.',
+    geocodingError: 'Şəhər axtarışı zamanı xəta baş verdi. Yenidən cəhd edin.',
     demoMode: 'Hava rejimi (Demo test):',
     generalAdviceTitle: 'Ümumi geyim məsləhəti:',
     todayOutfitTitle: 'Qarderobundan bugünkü kombin',
@@ -259,6 +268,9 @@ const UI_TEXT = {
     searchBtn: 'Find',
     searching: 'Searching...',
     cityNotFound: 'City not found. Try another name.',
+    weatherFetchError: 'Failed to load weather data. Please try again.',
+    weeklyForecastError: 'Failed to load weekly forecast. Please try again.',
+    geocodingError: 'City search failed. Please try again.',
     demoMode: 'Weather mode (Demo test):',
     generalAdviceTitle: 'General dressing tip:',
     todayOutfitTitle: "Today's outfit from your wardrobe",
@@ -370,6 +382,9 @@ const UI_TEXT = {
     searchBtn: 'Найти',
     searching: 'Поиск...',
     cityNotFound: 'Город не найден, попробуйте другое название.',
+    weatherFetchError: 'Не удалось загрузить данные о погоде. Попробуйте еще раз.',
+    weeklyForecastError: 'Не удалось загрузить прогноз на неделю. Попробуйте еще раз.',
+    geocodingError: 'Ошибка при поиске города. Попробуйте еще раз.',
     demoMode: 'Режим погоды (Демо):',
     generalAdviceTitle: 'Общий совет по одежде:',
     todayOutfitTitle: 'Образ на сегодня из гардероба',
@@ -849,8 +864,28 @@ export default function HomePage() {
   const [travelCities, setTravelCities] = useState([]);
   const [activeTravelPlan, setActiveTravelPlan] = useState(null);
   const [weeklyForecast, setWeeklyForecast] = useState([]);
+  const [weeklyForecastError, setWeeklyForecastError] = useState('');
   const [loadingWeekly, setLoadingWeekly] = useState(false);
   const [savingTravelCity, setSavingTravelCity] = useState(false);
+
+  const txRef = useRef(tx);
+  useEffect(() => {
+    txRef.current = tx;
+  }, [tx]);
+
+  const weatherAbortRef = useRef(null);
+  const weeklyAbortRef = useRef(null);
+  const geoSearchAbortRef = useRef(null);
+  const travelGeoAbortRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      weatherAbortRef.current?.abort();
+      weeklyAbortRef.current?.abort();
+      geoSearchAbortRef.current?.abort();
+      travelGeoAbortRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -884,25 +919,30 @@ export default function HomePage() {
   }, []);
 
   const fetchWeeklyForecast = useCallback(async (lat, lon) => {
+    weeklyAbortRef.current?.abort();
+    const controller = new AbortController();
+    weeklyAbortRef.current = controller;
+
     setLoadingWeekly(true);
+    setWeeklyForecastError('');
+    setWeeklyForecast([]);
     try {
-      const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=7&timezone=auto`
-      );
-      const data = await res.json();
-      if (data?.daily?.time) {
-        const days = data.daily.time.map((dateStr, idx) => ({
-          date: dateStr,
-          maxTemp: Math.round(data.daily.temperature_2m_max?.[idx] ?? 0),
-          minTemp: Math.round(data.daily.temperature_2m_min?.[idx] ?? 0),
-          rainProb: data.daily.precipitation_probability_max?.[idx] ?? 0,
-        }));
-        setWeeklyForecast(days);
-      }
-    } catch {
+      const days = await fetchDailyForecast(lat, lon, {
+        days: 7,
+        signal: controller.signal,
+      });
+      if (weeklyAbortRef.current !== controller) return;
+      setWeeklyForecast(days);
+    } catch (err) {
+      if (isAbortError(err) || weeklyAbortRef.current !== controller) return;
+      const errMsg = txRef.current.weeklyForecastError;
       setWeeklyForecast([]);
+      setWeeklyForecastError(errMsg);
+      setError(errMsg);
     } finally {
-      setLoadingWeekly(false);
+      if (weeklyAbortRef.current === controller) {
+        setLoadingWeekly(false);
+      }
     }
   }, []);
 
@@ -1040,37 +1080,29 @@ export default function HomePage() {
   }, [items, lang]);
 
   const fetchWeatherByCoords = useCallback(async (lat, lon, label) => {
-    setLoadingWeather(true);
-    try {
-      const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability&forecast_days=1&timezone=auto`
-      );
-      const data = await res.json();
-      if (data?.current) {
-        let hourlyForecast = null;
-        if (data?.hourly?.temperature_2m?.length) {
-          const temps = data.hourly.temperature_2m;
-          const probs = data.hourly.precipitation_probability || [];
-          hourlyForecast = {
-            minTemp: Math.round(Math.min(...temps)),
-            maxTemp: Math.round(Math.max(...temps)),
-            rainProb: probs.length ? Math.max(...probs) : 0,
-          };
-        }
+    weatherAbortRef.current?.abort();
+    const controller = new AbortController();
+    weatherAbortRef.current = controller;
 
-        setLiveRawWeather({
-          locationName: label,
-          temp: Math.round(data.current.temperature_2m),
-          apparent: Math.round(data.current.apparent_temperature),
-          wind: data.current.wind_speed_10m,
-          code: data.current.weather_code,
-          hourlyForecast,
-        });
-      }
-    } catch {
-      setError('Hava məlumatı alınarkən xəta baş verdi.');
+    setLoadingWeather(true);
+    setError('');
+    try {
+      const weatherData = await fetchCurrentWeather(lat, lon, {
+        signal: controller.signal,
+      });
+      if (weatherAbortRef.current !== controller) return;
+      setLiveRawWeather({
+        locationName: label,
+        ...weatherData,
+      });
+    } catch (err) {
+      if (isAbortError(err) || weatherAbortRef.current !== controller) return;
+      setLiveRawWeather(null);
+      setError(txRef.current.weatherFetchError);
     } finally {
-      setLoadingWeather(false);
+      if (weatherAbortRef.current === controller) {
+        setLoadingWeather(false);
+      }
     }
   }, []);
 
@@ -1141,16 +1173,16 @@ export default function HomePage() {
     e.preventDefault();
     const q = citySearchQuery.trim();
     if (!q) return;
+
+    geoSearchAbortRef.current?.abort();
+    const controller = new AbortController();
+    geoSearchAbortRef.current = controller;
+
     setSearchingCity(true);
     setError('');
     try {
-      const geoRes = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-          q
-        )}&count=1&language=${lang === 'ru' ? 'ru' : lang === 'en' ? 'en' : 'en'}&format=json`
-      );
-      const geoData = await geoRes.json();
-      const place = geoData?.results?.[0];
+      const place = await searchGeocodingCity(q, lang, { signal: controller.signal });
+      if (geoSearchAbortRef.current !== controller) return;
       if (!place) {
         setError(tx.cityNotFound);
         return;
@@ -1165,10 +1197,13 @@ export default function HomePage() {
       setLocationSource(tx.citySearched);
       setCitySearchQuery('');
       await fetchWeatherByCoords(place.latitude, place.longitude, displayLabel);
-    } catch {
-      setError(tx.cityNotFound);
+    } catch (err) {
+      if (isAbortError(err) || geoSearchAbortRef.current !== controller) return;
+      setError(tx.geocodingError);
     } finally {
-      setSearchingCity(false);
+      if (geoSearchAbortRef.current === controller) {
+        setSearchingCity(false);
+      }
     }
   };
 
@@ -1176,17 +1211,17 @@ export default function HomePage() {
     e.preventDefault();
     const q = travelCityInput.trim();
     if (!q) return;
+
+    travelGeoAbortRef.current?.abort();
+    const controller = new AbortController();
+    travelGeoAbortRef.current = controller;
+
     setSavingTravelCity(true);
     setError('');
 
     try {
-      const geoRes = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-          q
-        )}&count=1&language=${lang === 'ru' ? 'ru' : lang === 'en' ? 'en' : 'en'}&format=json`
-      );
-      const geoData = await geoRes.json();
-      const place = geoData?.results?.[0];
+      const place = await searchGeocodingCity(q, lang, { signal: controller.signal });
+      if (travelGeoAbortRef.current !== controller) return;
       if (!place) {
         setError(tx.cityNotFound);
         return;
@@ -1224,10 +1259,13 @@ export default function HomePage() {
       await fetchWeeklyForecast(entry.lat, entry.lon);
       setTravelCityInput('');
       setTravelNoteInput('');
-    } catch {
-      setError(tx.cityNotFound);
+    } catch (err) {
+      if (isAbortError(err) || travelGeoAbortRef.current !== controller) return;
+      setError(tx.geocodingError);
     } finally {
-      setSavingTravelCity(false);
+      if (travelGeoAbortRef.current === controller) {
+        setSavingTravelCity(false);
+      }
     }
   };
 
@@ -1857,6 +1895,10 @@ export default function HomePage() {
 
                 {loadingWeekly ? (
                   <p className={`text-xs ${t.muted}`}>{tx.checkingWeather}</p>
+                ) : weeklyForecastError ? (
+                  <p role="alert" className="text-xs text-red-500">
+                    {weeklyForecastError}
+                  </p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
                     {weeklyForecast.map((day) => (
