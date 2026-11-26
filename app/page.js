@@ -2,6 +2,13 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import {
+  CLOTHES_BUCKET,
+  extractClothesStoragePath,
+  generateSafeStoragePath,
+  resolveWardrobeItemUrls,
+  validateImageFile,
+} from '@/lib/storage';
 
 const CATEGORIES = [
   {
@@ -192,6 +199,9 @@ const UI_TEXT = {
     deleteBtn: 'Sil',
     addNewItemTitle: 'Yeni paltar əlavə et',
     photoLabel: 'Paltar şəkli *',
+    photoRequired: 'Zəhmət olmasa paltar şəkli seçin.',
+    photoInvalidType: 'Yalnız etibarlı şəkil faylları (JPEG, PNG, WebP, GIF) yüklənə bilər.',
+    photoTooLarge: 'Şəkil ölçüsü 5 MB-dan böyük olmamalıdır.',
     chooseFileBtn: 'Fayl seç',
     noFileChosen: 'Fayl seçilmədi',
     previewReady: 'Seçilmiş şəkil hazırdır',
@@ -304,6 +314,9 @@ const UI_TEXT = {
     deleteBtn: 'Delete',
     addNewItemTitle: 'Add new clothing item',
     photoLabel: 'Clothing photo *',
+    photoRequired: 'Please choose a clothing photo.',
+    photoInvalidType: 'Only valid image files (JPEG, PNG, WebP, GIF) are allowed.',
+    photoTooLarge: 'Image size must be 5 MB or less.',
     chooseFileBtn: 'Choose file',
     noFileChosen: 'No file chosen',
     previewReady: 'Selected photo ready',
@@ -415,6 +428,9 @@ const UI_TEXT = {
     deleteBtn: 'Удалить',
     addNewItemTitle: 'Добавить вещь',
     photoLabel: 'Фото вещи *',
+    photoRequired: 'Пожалуйста, выберите фото вещи.',
+    photoInvalidType: 'Допускаются только изображения (JPEG, PNG, WebP, GIF).',
+    photoTooLarge: 'Размер изображения не должен превышать 5 МБ.',
     chooseFileBtn: 'Выберите файл',
     noFileChosen: 'Файл не выбран',
     previewReady: 'Фото выбрано',
@@ -1429,7 +1445,8 @@ export default function HomePage() {
     if (fetchError) {
       setError(fetchError.message);
     } else {
-      setItems(data || []);
+      const resolved = await resolveWardrobeItemUrls(supabase, data || []);
+      setItems(resolved);
     }
     setLoadingItems(false);
   };
@@ -1471,37 +1488,39 @@ export default function HomePage() {
     setError('');
     setMessage('');
 
-    if (!imageFile) {
-      setError(tx.photoLabel);
+    const validation = await validateImageFile(imageFile);
+    if (!validation.valid) {
+      if (validation.errorCode === 'missing_file') {
+        setError(tx.photoRequired);
+      } else if (validation.errorCode === 'file_too_large') {
+        setError(tx.photoTooLarge);
+      } else {
+        setError(tx.photoInvalidType);
+      }
       return;
     }
 
     setUploading(true);
     try {
-      const fileExt = imageFile.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = generateSafeStoragePath(user.id, validation.ext);
 
       const { error: uploadError } = await supabase.storage
-        .from('clothes')
+        .from(CLOTHES_BUCKET)
         .upload(fileName, imageFile, {
           cacheControl: '3600',
+          contentType: validation.mimeType,
           upsert: false,
         });
 
       if (uploadError) throw uploadError;
 
-      const { data: publicUrlData } = supabase.storage
-        .from('clothes')
-        .getPublicUrl(fileName);
-
-      const imageUrl = publicUrlData?.publicUrl;
       const normalizedCategory =
         typeof category === 'string' ? category : category?.value || CATEGORIES[0].value;
 
       const { error: insertError } = await supabase.from('wardrobe_items').insert([
         {
           user_id: user.id,
-          image_url: imageUrl,
+          image_url: fileName,
           category: normalizedCategory,
           sub_category: subCategory.trim() || null,
           color: color.trim() || null,
@@ -1512,7 +1531,10 @@ export default function HomePage() {
         },
       ]);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        await supabase.storage.from(CLOTHES_BUCKET).remove([fileName]);
+        throw insertError;
+      }
 
       setMessage(tx.addedToast);
       setImageFile(null);
@@ -1538,10 +1560,9 @@ export default function HomePage() {
     if (!user) return;
     setError('');
     try {
-      const urlParts = item.image_url.split('/clothes/');
-      if (urlParts.length > 1) {
-        const storagePath = urlParts[1].split('?')[0];
-        await supabase.storage.from('clothes').remove([storagePath]);
+      const storagePath = item.storage_path || extractClothesStoragePath(item.image_url);
+      if (storagePath) {
+        await supabase.storage.from(CLOTHES_BUCKET).remove([storagePath]);
       }
 
       const { error: deleteError } = await supabase
@@ -2273,8 +2294,7 @@ export default function HomePage() {
               <input
                 id="clothes-file-input"
                 type="file"
-                accept="image/*"
-                required
+                accept="image/jpeg,image/png,image/webp,image/gif"
                 onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                 className="hidden"
               />
