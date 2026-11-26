@@ -217,6 +217,8 @@ const UI_TEXT = {
     auto: 'Avto',
     light: 'Açıq',
     dark: 'Qaranlıq',
+    languageGroupLabel: 'Dil seçimi',
+    themeGroupLabel: 'Tema seçimi',
     slotLabels: {
       top: 'Üst geyim',
       bottom: 'Alt geyim',
@@ -328,6 +330,8 @@ const UI_TEXT = {
     auto: 'Auto',
     light: 'Light',
     dark: 'Dark',
+    languageGroupLabel: 'Language selection',
+    themeGroupLabel: 'Theme selection',
     slotLabels: {
       top: 'Top',
       bottom: 'Bottom',
@@ -439,6 +443,8 @@ const UI_TEXT = {
     auto: 'Авто',
     light: 'Светлая',
     dark: 'Темная',
+    languageGroupLabel: 'Выбор языка',
+    themeGroupLabel: 'Выбор темы',
     slotLabels: {
       top: 'Верх',
       bottom: 'Низ',
@@ -1573,14 +1579,41 @@ export default function HomePage() {
     subtext: isDark ? 'text-zinc-300' : 'text-zinc-700',
     border: isDark ? 'border-zinc-800' : 'border-stone-200',
     pillIdle: isDark
-      ? 'bg-zinc-900 text-zinc-400 hover:text-white border-zinc-800'
-      : 'bg-white text-zinc-600 hover:text-zinc-900 border-stone-200',
+      ? 'bg-zinc-900 text-zinc-300 hover:text-white border-zinc-800'
+      : 'bg-white text-zinc-700 hover:text-zinc-900 border-stone-200',
     pillActive: isDark ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white',
+    focusRing: isDark
+      ? 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900'
+      : 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
+    errorBanner: isDark
+      ? 'bg-red-500/15 border-red-500/40 text-red-300'
+      : 'bg-red-50 border-red-300 text-red-800',
+    successBanner: isDark
+      ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+      : 'bg-emerald-50 border-emerald-300 text-emerald-800',
+    emeraldText: isDark ? 'text-emerald-300' : 'text-emerald-800',
+    emeraldPill: isDark
+      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/35'
+      : 'bg-emerald-50 text-emerald-800 border border-emerald-700/25',
+    emeraldBtn: isDark
+      ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-400/40 text-emerald-300'
+      : 'bg-emerald-100 hover:bg-emerald-200 border-emerald-400 text-emerald-900',
+    amberBanner: isDark
+      ? 'bg-amber-500/15 border-amber-500/35 text-amber-300'
+      : 'bg-amber-50 border-amber-300 text-amber-900',
+    amberLocked: isDark
+      ? 'bg-amber-400/20 text-amber-300 font-semibold'
+      : 'bg-amber-100 text-amber-900 border border-amber-300 font-semibold',
+    skyText: isDark ? 'text-sky-300' : 'text-sky-800',
+    skyBadge: isDark ? 'bg-sky-500/15 text-sky-300' : 'bg-sky-100 text-sky-900',
+    tealBadge: isDark ? 'bg-teal-500/15 text-teal-300' : 'bg-teal-100 text-teal-900',
   };
 
   const renderTopControls = () => (
     <div className="flex flex-wrap items-center gap-2">
       <div
+        role="group"
+        aria-label={tx.languageGroupLabel}
         className={`inline-flex items-center rounded-xl p-1 border text-xs ${
           isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-stone-200/70 border-stone-300'
         }`}
@@ -1593,8 +1626,9 @@ export default function HomePage() {
           <button
             key={l.id}
             type="button"
+            aria-pressed={lang === l.id}
             onClick={() => handleSelectLang(l.id)}
-            className={`px-2 py-1 rounded-lg font-semibold transition cursor-pointer active:scale-95 ${
+            className={`min-h-[32px] min-w-[36px] px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer active:scale-95 ${t.focusRing} ${
               lang === l.id ? 'bg-emerald-700 text-white shadow-xs' : t.muted
             }`}
           >
@@ -1604,6 +1638,8 @@ export default function HomePage() {
       </div>
 
       <div
+        role="group"
+        aria-label={tx.themeGroupLabel}
         className={`inline-flex items-center rounded-xl p-1 border text-xs ${
           isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-stone-200/70 border-stone-300'
         }`}
@@ -1616,8 +1652,9 @@ export default function HomePage() {
           <button
             key={m.id}
             type="button"
+            aria-pressed={themeMode === m.id}
             onClick={() => handleSelectTheme(m.id)}
-            className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer active:scale-95 ${
+            className={`min-h-[32px] px-2.5 py-1 rounded-lg font-medium transition cursor-pointer active:scale-95 ${t.focusRing} ${
               themeMode === m.id
                 ? isDark
                   ? 'bg-white text-zinc-950 shadow-xs'
@@ -1656,38 +1693,46 @@ export default function HomePage() {
 
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
-              <label className={`block text-sm ${t.subtext} mb-1.5`}>{tx.email}</label>
+              <label htmlFor="auth-email" className={`block text-sm ${t.subtext} mb-1.5`}>
+                {tx.email}
+              </label>
               <input
+                id="auth-email"
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
-                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm ${t.focusRing}`}
               />
             </div>
 
             <div>
-              <label className={`block text-sm ${t.subtext} mb-1.5`}>{tx.password}</label>
+              <label htmlFor="auth-password" className={`block text-sm ${t.subtext} mb-1.5`}>
+                {tx.password}
+              </label>
               <input
+                id="auth-password"
                 type="password"
                 required
                 minLength={6}
+                autoComplete={isRegister ? 'new-password' : 'current-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={tx.passwordHint}
-                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm ${t.focusRing}`}
               />
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-500">
+              <div role="alert" className={`rounded-xl border p-3 text-xs ${t.errorBanner}`}>
                 {error}
               </div>
             )}
 
             {message && (
-              <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-500">
+              <div role="status" className={`rounded-xl border p-3 text-xs ${t.successBanner}`}>
                 {message}
               </div>
             )}
@@ -1695,7 +1740,7 @@ export default function HomePage() {
             <button
               type="submit"
               disabled={submitting}
-              className={`w-full rounded-xl ${t.pillActive} disabled:opacity-50 font-semibold py-2.5 text-sm transition cursor-pointer active:scale-[0.98]`}
+              className={`w-full min-h-[44px] rounded-xl ${t.pillActive} disabled:opacity-50 font-semibold py-2.5 text-sm transition cursor-pointer active:scale-[0.98] ${t.focusRing}`}
             >
               {submitting ? tx.pleaseWait : isRegister ? tx.signUp : tx.signIn}
             </button>
@@ -1709,7 +1754,7 @@ export default function HomePage() {
                 setError('');
                 setMessage('');
               }}
-              className={`text-xs ${t.muted} transition cursor-pointer`}
+              className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs ${t.muted} transition cursor-pointer ${t.focusRing}`}
             >
               {isRegister ? tx.haveAccount : tx.noAccount}
             </button>
@@ -1755,8 +1800,9 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center gap-2.5">
             {renderTopControls()}
             <button
+              type="button"
               onClick={handleLogout}
-              className={`rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
+              className={`min-h-[36px] rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95 ${t.focusRing}`}
             >
               {tx.logout}
             </button>
@@ -1764,11 +1810,13 @@ export default function HomePage() {
         </header>
 
         {/* Tabs switcher */}
-        <div className="app-tabs flex flex-wrap gap-2">
+        <div role="tablist" className="app-tabs flex flex-wrap gap-2">
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'today'}
             onClick={() => setActiveTab('today')}
-            className={`app-tab rounded-xl px-4 py-2 text-xs font-semibold transition cursor-pointer active:scale-95 ${
+            className={`app-tab rounded-xl px-4 py-2 text-xs font-semibold transition cursor-pointer active:scale-95 ${t.focusRing} ${
               activeTab === 'today' ? t.pillActive : `${t.pillIdle} border`
             }`}
           >
@@ -1776,8 +1824,10 @@ export default function HomePage() {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'travel'}
             onClick={() => setActiveTab('travel')}
-            className={`app-tab rounded-xl px-4 py-2 text-xs font-semibold transition cursor-pointer active:scale-95 ${
+            className={`app-tab rounded-xl px-4 py-2 text-xs font-semibold transition cursor-pointer active:scale-95 ${t.focusRing} ${
               activeTab === 'travel' ? t.pillActive : `${t.pillIdle} border`
             }`}
           >
@@ -1786,13 +1836,13 @@ export default function HomePage() {
         </div>
 
         {error && (
-          <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3.5 text-sm text-red-500 animate-outfit-in">
+          <div role="alert" className={`rounded-xl border p-3.5 text-sm animate-outfit-in ${t.errorBanner}`}>
             {error}
           </div>
         )}
 
         {message && (
-          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 text-sm text-emerald-500 animate-outfit-in">
+          <div role="status" className={`rounded-xl border p-3.5 text-sm animate-outfit-in ${t.successBanner}`}>
             {message}
           </div>
         )}
@@ -1805,41 +1855,56 @@ export default function HomePage() {
             </div>
 
             <form onSubmit={handleAddTravelCity} className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <input
-                type="text"
-                required
-                value={travelCityInput}
-                onChange={(e) => setTravelCityInput(e.target.value)}
-                placeholder={tx.travelInputPlaceholder}
-                className={`md:col-span-2 rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
-              />
-              <div>
-                <label className={`block text-[10px] ${t.muted} mb-1`}>{tx.travelDaysLabel}</label>
+              <div className="md:col-span-2 flex items-end">
+                <label htmlFor="travel-city-input" className="sr-only">
+                  {tx.travelInputPlaceholder}
+                </label>
                 <input
+                  id="travel-city-input"
+                  type="text"
+                  required
+                  value={travelCityInput}
+                  onChange={(e) => setTravelCityInput(e.target.value)}
+                  placeholder={tx.travelInputPlaceholder}
+                  className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs ${t.focusRing}`}
+                />
+              </div>
+              <div>
+                <label htmlFor="travel-days-input" className={`block text-[11px] ${t.muted} mb-1`}>
+                  {tx.travelDaysLabel}
+                </label>
+                <input
+                  id="travel-days-input"
                   type="number"
                   min={1}
                   max={14}
                   value={travelDaysInput}
                   onChange={(e) => setTravelDaysInput(e.target.value)}
-                  className={`w-full rounded-xl ${t.surface} border px-3.5 py-2 text-xs focus:outline-none`}
+                  className={`w-full rounded-xl ${t.surface} border px-3.5 py-2 text-xs ${t.focusRing}`}
                 />
               </div>
               <div className="flex items-end">
                 <button
                   type="submit"
                   disabled={savingTravelCity}
-                  className={`w-full rounded-xl ${t.pillActive} disabled:opacity-50 px-4 py-2.5 text-xs font-semibold transition cursor-pointer active:scale-95`}
+                  className={`w-full min-h-[42px] rounded-xl ${t.pillActive} disabled:opacity-50 px-4 py-2.5 text-xs font-semibold transition cursor-pointer active:scale-95 ${t.focusRing}`}
                 >
                   {savingTravelCity ? tx.searching : tx.travelSaveBtn}
                 </button>
               </div>
-              <input
-                type="text"
-                value={travelNoteInput}
-                onChange={(e) => setTravelNoteInput(e.target.value)}
-                placeholder={tx.travelNotePlaceholder}
-                className={`md:col-span-4 rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
-              />
+              <div className="md:col-span-4">
+                <label htmlFor="travel-note-input" className="sr-only">
+                  {tx.travelNotePlaceholder}
+                </label>
+                <input
+                  id="travel-note-input"
+                  type="text"
+                  value={travelNoteInput}
+                  onChange={(e) => setTravelNoteInput(e.target.value)}
+                  placeholder={tx.travelNotePlaceholder}
+                  className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs ${t.focusRing}`}
+                />
+              </div>
             </form>
 
             {/* 1-Week Forecast */}
@@ -1868,7 +1933,7 @@ export default function HomePage() {
                         <p className="text-sm font-bold">
                           {day.maxTemp}° / {day.minTemp}°
                         </p>
-                        <p className="text-[11px] text-sky-400">💧 {day.rainProb}%</p>
+                        <p className={`text-[11px] font-medium ${t.skyText}`}>💧 {day.rainProb}%</p>
                       </div>
                     ))}
                   </div>
@@ -1885,7 +1950,7 @@ export default function HomePage() {
                     {activeTravelPlan.days || 3} {tx.suitcaseSummary}
                   </p>
                   {suitcasePlan.note && (
-                    <p className="text-xs text-emerald-400 mt-1">{suitcasePlan.note}</p>
+                    <p className={`text-xs font-medium ${t.emeraldText} mt-1`}>{suitcasePlan.note}</p>
                   )}
                 </div>
 
@@ -1944,14 +2009,14 @@ export default function HomePage() {
                         <button
                           type="button"
                           onClick={() => handleSelectSavedTravelCity(c)}
-                          className="rounded-lg bg-emerald-500/10 text-emerald-700 border border-emerald-700/20 px-2.5 py-1 text-[11px] font-medium cursor-pointer"
+                          className={`min-h-[32px] rounded-lg px-3 py-1 text-xs font-medium cursor-pointer transition active:scale-95 ${t.emeraldPill} ${t.focusRing}`}
                         >
                           {tx.useCityBtn}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleRemoveTravelCity(c.id)}
-                          className={`text-[11px] ${t.muted} hover:text-red-400 cursor-pointer`}
+                          className={`min-h-[32px] rounded-lg px-2.5 py-1 text-xs ${t.muted} hover:text-red-500 cursor-pointer transition ${t.focusRing}`}
                         >
                           {tx.removeCityBtn}
                         </button>
@@ -1990,15 +2055,19 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={detectGpsLocation}
-                  className={`rounded-xl ${t.pillActive} px-3.5 py-2 text-xs font-semibold transition cursor-pointer active:scale-95`}
+                  className={`min-h-[38px] rounded-xl ${t.pillActive} px-3.5 py-2 text-xs font-semibold transition cursor-pointer active:scale-95 ${t.focusRing}`}
                 >
                   {tx.gpsBtn}
                 </button>
 
+                <label htmlFor="city-select" className="sr-only">
+                  {tx.chooseLocation}
+                </label>
                 <select
+                  id="city-select"
                   value={selectedCity}
                   onChange={(e) => handleCitySelect(e.target.value)}
-                  className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
+                  className={`rounded-xl ${t.surface} border px-3 py-2 text-xs ${t.focusRing}`}
                 >
                   {WORLD_CITIES.map((city) => (
                     <option key={`${city.name}-${city.code}`} value={city.name}>
@@ -2010,17 +2079,21 @@ export default function HomePage() {
             </div>
 
             <form onSubmit={handleWorldCitySearch} className="flex flex-wrap gap-2">
+              <label htmlFor="city-search-input" className="sr-only">
+                {tx.searchCityPlaceholder}
+              </label>
               <input
+                id="city-search-input"
                 type="text"
                 value={citySearchQuery}
                 onChange={(e) => setCitySearchQuery(e.target.value)}
                 placeholder={tx.searchCityPlaceholder}
-                className={`flex-1 min-w-[210px] rounded-xl ${t.surface} border px-3.5 py-2 text-xs focus:outline-none`}
+                className={`flex-1 min-w-[210px] rounded-xl ${t.surface} border px-3.5 py-2 text-xs ${t.focusRing}`}
               />
               <button
                 type="submit"
                 disabled={searchingCity}
-                className={`rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
+                className={`min-h-[38px] rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95 ${t.focusRing}`}
               >
                 {searchingCity ? tx.searching : tx.searchBtn}
               </button>
@@ -2032,11 +2105,10 @@ export default function HomePage() {
                 <button
                   key={preset.id}
                   type="button"
+                  aria-pressed={demoPresetId === preset.id}
                   onClick={() => setDemoPresetId(preset.id)}
-                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition cursor-pointer active:scale-95 ${
-                    demoPresetId === preset.id
-                      ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-700/20'
-                      : `${t.pillIdle} border`
+                  className={`min-h-[32px] rounded-full px-3 py-1 text-xs font-medium transition cursor-pointer active:scale-95 ${t.focusRing} ${
+                    demoPresetId === preset.id ? t.emeraldPill : `${t.pillIdle} border`
                   }`}
                 >
                   {preset.label[lang] || preset.label.az}
@@ -2054,7 +2126,7 @@ export default function HomePage() {
                 </div>
 
                 {activeWeather.eveningAlert && (
-                  <div className="rounded-xl bg-amber-500/15 border border-amber-500/35 px-4 py-3 text-xs text-amber-400">
+                  <div className={`rounded-xl border px-4 py-3 text-xs font-medium ${t.amberBanner}`}>
                     {activeWeather.eveningAlert}
                   </div>
                 )}
@@ -2066,7 +2138,7 @@ export default function HomePage() {
                 <div>
                   <h3 className="text-base font-semibold">{tx.todayOutfitTitle}</h3>
                   {recommendedOutfit?.explanation ? (
-                    <p className="text-xs text-emerald-500 mt-0.5">
+                    <p className={`text-xs font-medium ${t.emeraldText} mt-0.5`}>
                       {tx.whyOutfit} {recommendedOutfit.explanation}
                     </p>
                   ) : (
@@ -2075,10 +2147,14 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
+                  <label htmlFor="outfit-style-select" className="sr-only">
+                    {tx.styleLabel}
+                  </label>
                   <select
+                    id="outfit-style-select"
                     value={outfitStyleFilter}
                     onChange={(e) => setOutfitStyleFilter(e.target.value)}
-                    className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
+                    className={`rounded-xl ${t.surface} border px-3 py-2 text-xs ${t.focusRing}`}
                   >
                     <option value="all">{tx.allStyles}</option>
                     {STYLES.map((st) => (
@@ -2092,7 +2168,7 @@ export default function HomePage() {
                     type="button"
                     disabled={!activeWeather || items.length === 0}
                     onClick={handleRegenerateOutfit}
-                    className={`rounded-xl ${t.card} disabled:opacity-40 border px-3.5 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
+                    className={`min-h-[38px] rounded-xl ${t.card} disabled:opacity-40 border px-3.5 py-2 text-xs font-medium transition cursor-pointer active:scale-95 ${t.focusRing}`}
                   >
                     {tx.generateAnother}
                   </button>
@@ -2101,7 +2177,7 @@ export default function HomePage() {
                     type="button"
                     disabled={!recommendedOutfit}
                     onClick={handleSaveCurrentOutfit}
-                    className="rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-40 border border-emerald-500/40 px-3.5 py-2 text-xs font-medium text-emerald-400 transition cursor-pointer active:scale-95"
+                    className={`min-h-[38px] rounded-xl disabled:opacity-40 border px-3.5 py-2 text-xs font-medium transition cursor-pointer active:scale-95 ${t.emeraldBtn} ${t.focusRing}`}
                   >
                     {tx.saveOutfit}
                   </button>
@@ -2133,9 +2209,10 @@ export default function HomePage() {
                           {slot.item && (
                             <button
                               type="button"
+                              aria-pressed={isLocked}
                               onClick={() => toggleLockSlot(slot.key)}
-                              className={`text-[10px] px-1.5 py-0.5 rounded transition cursor-pointer active:scale-95 ${
-                                isLocked ? 'bg-amber-400/20 text-amber-400 font-semibold' : t.muted
+                              className={`min-h-[28px] min-w-[44px] text-xs px-2.5 py-1 rounded-lg transition cursor-pointer active:scale-95 ${t.focusRing} ${
+                                isLocked ? t.amberLocked : `${t.muted} hover:bg-zinc-500/10`
                               }`}
                             >
                               {isLocked ? tx.locked : tx.lock}
@@ -2167,7 +2244,7 @@ export default function HomePage() {
                                 <button
                                   type="button"
                                   onClick={() => regenerateSingleSlot(slot.key)}
-                                  className={`w-full rounded-lg ${t.card} border py-1 text-[11px] ${t.subtext} transition cursor-pointer active:scale-95`}
+                                  className={`w-full min-h-[36px] rounded-lg ${t.card} border py-1.5 px-3 text-xs font-medium ${t.subtext} transition cursor-pointer active:scale-95 ${t.focusRing}`}
                                 >
                                   {tx.swap}
                                 </button>
@@ -2234,7 +2311,7 @@ export default function HomePage() {
                         <button
                           type="button"
                           onClick={() => handleLoadSavedOutfit(saved)}
-                          className="text-xs text-emerald-700 hover:underline font-medium transition cursor-pointer"
+                          className={`min-h-[32px] px-2.5 py-1 rounded-lg text-xs ${t.emeraldText} hover:underline font-medium transition cursor-pointer ${t.focusRing}`}
                         >
                           {tx.loadBtn}
                         </button>
@@ -2242,7 +2319,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => handleDeleteSavedOutfit(saved.id)}
-                        className={`text-xs ${t.muted} hover:text-red-400 transition cursor-pointer`}
+                        className={`min-h-[32px] px-2.5 py-1 rounded-lg text-xs ${t.muted} hover:text-red-500 transition cursor-pointer ${t.focusRing}`}
                       >
                         {tx.deleteBtn}
                       </button>
@@ -2269,19 +2346,24 @@ export default function HomePage() {
           <h2 className="text-lg font-semibold mb-4">{tx.addNewItemTitle}</h2>
           <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2 space-y-2.5">
-              <label className={`block text-xs ${t.muted}`}>{tx.photoLabel}</label>
+              <label htmlFor="clothes-file-input" className={`block text-xs ${t.muted}`}>
+                {tx.photoLabel}
+              </label>
               <input
                 id="clothes-file-input"
                 type="file"
                 accept="image/*"
-                required
                 onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                className="hidden"
+                className="sr-only peer"
               />
-              <div className={`w-full rounded-xl ${t.surface} border px-3.5 py-2 text-sm flex items-center gap-3`}>
+              <div
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2 text-sm flex items-center gap-3 peer-focus-visible:ring-2 ${
+                  isDark ? 'peer-focus-visible:ring-emerald-300' : 'peer-focus-visible:ring-emerald-700'
+                }`}
+              >
                 <label
                   htmlFor="clothes-file-input"
-                  className={`rounded-lg ${t.pillActive} px-3 py-1.5 text-xs font-medium cursor-pointer transition active:scale-95 shrink-0`}
+                  className={`min-h-[36px] inline-flex items-center rounded-lg ${t.pillActive} px-3 py-1.5 text-xs font-medium cursor-pointer transition active:scale-95 shrink-0`}
                 >
                   {tx.chooseFileBtn}
                 </label>
@@ -2302,11 +2384,14 @@ export default function HomePage() {
             </div>
 
             <div>
-              <label className={`block text-xs ${t.muted} mb-1.5`}>{tx.categoryLabel}</label>
+              <label htmlFor="item-category" className={`block text-xs ${t.muted} mb-1.5`}>
+                {tx.categoryLabel}
+              </label>
               <select
+                id="item-category"
                 value={typeof category === 'string' ? category : category?.value}
                 onChange={(e) => setCategory(e.target.value)}
-                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm ${t.focusRing}`}
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -2317,33 +2402,42 @@ export default function HomePage() {
             </div>
 
             <div>
-              <label className={`block text-xs ${t.muted} mb-1.5`}>{tx.subCategoryLabel}</label>
+              <label htmlFor="item-subcategory" className={`block text-xs ${t.muted} mb-1.5`}>
+                {tx.subCategoryLabel}
+              </label>
               <input
+                id="item-subcategory"
                 type="text"
                 value={subCategory}
                 onChange={(e) => setSubCategory(e.target.value)}
                 placeholder={tx.subCategoryPlaceholder}
-                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm ${t.focusRing}`}
               />
             </div>
 
             <div>
-              <label className={`block text-xs ${t.muted} mb-1.5`}>{tx.colorLabel}</label>
+              <label htmlFor="item-color" className={`block text-xs ${t.muted} mb-1.5`}>
+                {tx.colorLabel}
+              </label>
               <input
+                id="item-color"
                 type="text"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 placeholder={tx.colorPlaceholder}
-                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm ${t.focusRing}`}
               />
             </div>
 
             <div>
-              <label className={`block text-xs ${t.muted} mb-1.5`}>{tx.styleLabel}</label>
+              <label htmlFor="item-style" className={`block text-xs ${t.muted} mb-1.5`}>
+                {tx.styleLabel}
+              </label>
               <select
+                id="item-style"
                 value={style}
                 onChange={(e) => setStyle(e.target.value)}
-                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
+                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm ${t.focusRing}`}
               >
                 {STYLES.map((st) => (
                   <option key={st.value} value={st.value}>
@@ -2355,36 +2449,45 @@ export default function HomePage() {
 
             <div className="md:col-span-2">
               <div className={`flex items-center justify-between text-xs ${t.muted} mb-1.5`}>
-                <span>{tx.warmthSlider}</span>
+                <label htmlFor="item-warmth">{tx.warmthSlider}</label>
                 <span className="font-semibold">{warmthLevel} / 5</span>
               </div>
               <input
+                id="item-warmth"
                 type="range"
                 min={1}
                 max={5}
                 value={warmthLevel}
                 onChange={(e) => setWarmthLevel(e.target.value)}
-                className="w-full cursor-pointer"
+                className={`w-full cursor-pointer rounded ${t.focusRing}`}
               />
             </div>
 
             <div className="md:col-span-2 flex flex-wrap gap-6 pt-1">
-              <label className={`flex items-center gap-2 text-sm ${t.subtext} cursor-pointer`}>
+              <label
+                htmlFor="item-waterproof"
+                className={`min-h-[32px] flex items-center gap-2 text-sm ${t.subtext} cursor-pointer`}
+              >
                 <input
+                  id="item-waterproof"
                   type="checkbox"
                   checked={waterproof}
                   onChange={(e) => setWaterproof(e.target.checked)}
-                  className="rounded"
+                  className={`h-4 w-4 rounded ${t.focusRing}`}
                 />
                 {tx.waterproofCheck}
               </label>
 
-              <label className={`flex items-center gap-2 text-sm ${t.subtext} cursor-pointer`}>
+              <label
+                htmlFor="item-windproof"
+                className={`min-h-[32px] flex items-center gap-2 text-sm ${t.subtext} cursor-pointer`}
+              >
                 <input
+                  id="item-windproof"
                   type="checkbox"
                   checked={windproof}
                   onChange={(e) => setWindproof(e.target.checked)}
-                  className="rounded"
+                  className={`h-4 w-4 rounded ${t.focusRing}`}
                 />
                 {tx.windproofCheck}
               </label>
@@ -2394,7 +2497,7 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={uploading}
-                className={`w-full md:w-auto rounded-xl ${t.pillActive} disabled:opacity-50 font-semibold px-6 py-2.5 text-sm transition cursor-pointer active:scale-[0.98]`}
+                className={`w-full md:w-auto min-h-[44px] rounded-xl ${t.pillActive} disabled:opacity-50 font-semibold px-6 py-2.5 text-sm transition cursor-pointer active:scale-[0.98] ${t.focusRing}`}
               >
                 {uploading ? tx.uploadingBtn : tx.addToWardrobeBtn}
               </button>
@@ -2411,8 +2514,9 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
+                aria-pressed={selectedCategoryFilter === 'Hamısı'}
                 onClick={() => setSelectedCategoryFilter('Hamısı')}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${
+                className={`min-h-[36px] rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${t.focusRing} ${
                   selectedCategoryFilter === 'Hamısı' ? t.pillActive : `${t.pillIdle} border`
                 }`}
               >
@@ -2423,8 +2527,9 @@ export default function HomePage() {
                 <button
                   type="button"
                   key={cat.value}
+                  aria-pressed={selectedCategoryFilter === cat.value}
                   onClick={() => setSelectedCategoryFilter(cat.value)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${
+                  className={`min-h-[36px] rounded-full px-3.5 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95 ${t.focusRing} ${
                     selectedCategoryFilter === cat.value ? t.pillActive : `${t.pillIdle} border`
                   }`}
                 >
@@ -2472,12 +2577,12 @@ export default function HomePage() {
                           {tx.warmthShort}: {item.warmth_level}/5
                         </span>
                         {item.waterproof && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400">
+                          <span className={`text-[11px] px-2 py-0.5 rounded-md font-medium ${t.skyBadge}`}>
                             {tx.waterproofBadge}
                           </span>
                         )}
                         {item.windproof && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-400">
+                          <span className={`text-[11px] px-2 py-0.5 rounded-md font-medium ${t.tealBadge}`}>
                             {tx.windproofBadge}
                           </span>
                         )}
@@ -2486,8 +2591,9 @@ export default function HomePage() {
                   </div>
                   <div className="px-3.5 pb-3">
                     <button
+                      type="button"
                       onClick={() => handleDeleteItem(item)}
-                      className={`w-full rounded-lg ${t.surface} hover:bg-red-500/15 border hover:border-red-500/30 py-1.5 text-xs ${t.muted} hover:text-red-400 transition cursor-pointer active:scale-95`}
+                      className={`w-full min-h-[36px] rounded-lg ${t.surface} hover:bg-red-500/15 border hover:border-red-500/30 py-2 text-xs ${t.muted} hover:text-red-500 transition cursor-pointer active:scale-95 ${t.focusRing}`}
                     >
                       {tx.deleteBtn}
                     </button>
