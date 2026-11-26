@@ -217,6 +217,13 @@ const UI_TEXT = {
     auto: 'Avto',
     light: 'Açıq',
     dark: 'Qaranlıq',
+    closeNotification: 'Bildirişi bağla',
+    locationModeLabels: {
+      gps: 'GPS',
+      manual: 'Əl ilə',
+      search: 'Axtarış',
+      travel: 'Səyahət',
+    },
     slotLabels: {
       top: 'Üst geyim',
       bottom: 'Alt geyim',
@@ -328,6 +335,13 @@ const UI_TEXT = {
     auto: 'Auto',
     light: 'Light',
     dark: 'Dark',
+    closeNotification: 'Dismiss notification',
+    locationModeLabels: {
+      gps: 'GPS',
+      manual: 'Manual',
+      search: 'Search',
+      travel: 'Travel',
+    },
     slotLabels: {
       top: 'Top',
       bottom: 'Bottom',
@@ -439,6 +453,13 @@ const UI_TEXT = {
     auto: 'Авто',
     light: 'Светлая',
     dark: 'Темная',
+    closeNotification: 'Закрыть уведомление',
+    locationModeLabels: {
+      gps: 'GPS',
+      manual: 'Вручную',
+      search: 'Поиск',
+      travel: 'Поездка',
+    },
     slotLabels: {
       top: 'Верх',
       bottom: 'Низ',
@@ -787,6 +808,56 @@ function buildSuitcasePlan(items, weeklyDays, tripDays, lang = 'az') {
   return { suggestedItems, note };
 }
 
+const SAVED_DATE_LOCALES = {
+  az: 'az-AZ',
+  en: 'en-US',
+  ru: 'ru-RU',
+};
+
+function formatSavedOutfitDate(value, lang = 'az') {
+  if (!value) return '';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return String(value);
+  }
+  try {
+    const locale = SAVED_DATE_LOCALES[lang] || 'az-AZ';
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(parsed);
+  } catch {
+    return String(value);
+  }
+}
+
+function findWorldCityMatch(name, lat, lon) {
+  const normalized = (name || '').trim().toLowerCase();
+  if (normalized) {
+    const byName = WORLD_CITIES.find(
+      (c) =>
+        c.name.toLowerCase() === normalized ||
+        (c.nameByLang &&
+          Object.values(c.nameByLang).some((v) => v.toLowerCase() === normalized))
+    );
+    if (byName) return byName;
+  }
+  if (typeof lat === 'number' && typeof lon === 'number') {
+    let nearest = null;
+    let minDist = Infinity;
+    for (const city of WORLD_CITIES) {
+      const d = Math.hypot(city.lat - lat, city.lon - lon);
+      if (d < minDist) {
+        minDist = d;
+        nearest = city;
+      }
+    }
+    if (nearest && minDist < 0.35) return nearest;
+  }
+  return null;
+}
+
 export default function HomePage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -830,6 +901,7 @@ export default function HomePage() {
   // Location & Weather state
   const [locationMode, setLocationMode] = useState('gps');
   const [selectedCity, setSelectedCity] = useState('Bakı');
+  const [customCityOption, setCustomCityOption] = useState(null);
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [searchingCity, setSearchingCity] = useState(false);
   const [locationSource, setLocationSource] = useState(UI_TEXT.az.gpsFinding);
@@ -882,6 +954,18 @@ export default function HomePage() {
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
+
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(''), 4500);
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => setError(''), 6000);
+    return () => clearTimeout(timer);
+  }, [error]);
 
   const fetchWeeklyForecast = useCallback(async (lat, lon) => {
     setLoadingWeekly(true);
@@ -1074,12 +1158,27 @@ export default function HomePage() {
     }
   }, []);
 
-  const persistManualLocation = useCallback((cityValue, lat, lon, label) => {
-    setLocationMode('manual');
+  const syncLocationControl = useCallback((cityName, lat, lon, displayLabel) => {
+    const matched = findWorldCityMatch(cityName, lat, lon);
+    if (matched) {
+      setCustomCityOption(null);
+      setSelectedCity(matched.name);
+    } else {
+      const label = displayLabel || cityName || '';
+      if (label) {
+        const customValue = `__custom__:${label}`;
+        setCustomCityOption({ value: customValue, label });
+        setSelectedCity(customValue);
+      }
+    }
+  }, []);
+
+  const persistManualLocation = useCallback((cityValue, lat, lon, label, mode = 'manual') => {
+    setLocationMode(mode);
     try {
       localStorage.setItem(
         'geyin_manual_location',
-        JSON.stringify({ city: cityValue, lat, lon, label })
+        JSON.stringify({ city: cityValue, lat, lon, label, mode })
       );
     } catch {
       // ignore
@@ -1098,6 +1197,8 @@ export default function HomePage() {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       setLocationSource(tx.gpsUnsupported);
       const fallback = WORLD_CITIES[0];
+      setCustomCityOption(null);
+      setSelectedCity(fallback.name);
       fetchWeatherByCoords(fallback.lat, fallback.lon, `${fallback.name} (${fallback.code})`);
       return;
     }
@@ -1107,10 +1208,7 @@ export default function HomePage() {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         const nearestName = findNearestCity(latitude, longitude, lang);
-        const matchedCity = WORLD_CITIES.find(
-          (c) => c.name === nearestName || (c.nameByLang && c.nameByLang[lang] === nearestName)
-        );
-        if (matchedCity) setSelectedCity(matchedCity.name);
+        syncLocationControl(nearestName, latitude, longitude, nearestName);
         setLocationSource(tx.gpsFound);
         fetchWeatherByCoords(latitude, longitude, nearestName);
       },
@@ -1118,20 +1216,23 @@ export default function HomePage() {
         setLocationSource(tx.gpsDenied);
         const fallback =
           WORLD_CITIES.find((c) => c.name === selectedCity) || WORLD_CITIES[0];
+        setCustomCityOption(null);
+        setSelectedCity(fallback.name);
         fetchWeatherByCoords(fallback.lat, fallback.lon, `${fallback.name} (${fallback.code})`);
       },
       { timeout: 8000 }
     );
-  }, [fetchWeatherByCoords, selectedCity, tx, lang]);
+  }, [fetchWeatherByCoords, selectedCity, syncLocationControl, tx, lang]);
 
   const handleCitySelect = (cityName) => {
     setDemoPresetId('live');
+    setCustomCityOption(null);
     setSelectedCity(cityName);
     const cityObj = WORLD_CITIES.find((c) => c.name === cityName);
     if (cityObj) {
       const displayCity = cityObj.nameByLang ? cityObj.nameByLang[lang] || cityObj.name : cityObj.name;
       const fullLabel = `${displayCity} (${cityObj.code})`;
-      persistManualLocation(cityObj.name, cityObj.lat, cityObj.lon, fullLabel);
+      persistManualLocation(cityObj.name, cityObj.lat, cityObj.lon, fullLabel, 'manual');
       setLocationSource(tx.citySelected);
       fetchWeatherByCoords(cityObj.lat, cityObj.lon, fullLabel);
     }
@@ -1161,7 +1262,8 @@ export default function HomePage() {
         ? `${place.name}, ${place.country}`
         : place.name;
       setDemoPresetId('live');
-      persistManualLocation(place.name, place.latitude, place.longitude, displayLabel);
+      syncLocationControl(place.name, place.latitude, place.longitude, displayLabel);
+      persistManualLocation(place.name, place.latitude, place.longitude, displayLabel, 'search');
       setLocationSource(tx.citySearched);
       setCitySearchQuery('');
       await fetchWeatherByCoords(place.latitude, place.longitude, displayLabel);
@@ -1218,7 +1320,8 @@ export default function HomePage() {
       }
 
       setDemoPresetId('live');
-      persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
+      syncLocationControl(entry.name, entry.lat, entry.lon, entry.label);
+      persistManualLocation(entry.name, entry.lat, entry.lon, entry.label, 'travel');
       setLocationSource(`${tx.travelPinned}: ${entry.label}`);
       await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
       await fetchWeeklyForecast(entry.lat, entry.lon);
@@ -1234,7 +1337,8 @@ export default function HomePage() {
   const handleSelectSavedTravelCity = async (entry) => {
     setActiveTravelPlan(entry);
     setDemoPresetId('live');
-    persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
+    syncLocationControl(entry.name, entry.lat, entry.lon, entry.label);
+    persistManualLocation(entry.name, entry.lat, entry.lon, entry.label, 'travel');
     setLocationSource(`${tx.travelPinned}: ${entry.label}`);
     await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
     await fetchWeeklyForecast(entry.lat, entry.lon);
@@ -1263,14 +1367,21 @@ export default function HomePage() {
     }
 
     if (savedManual && typeof savedManual.lat === 'number' && typeof savedManual.lon === 'number') {
-      setLocationMode('manual');
-      if (savedManual.city) setSelectedCity(savedManual.city);
-      setLocationSource(tx.citySelected);
+      const mode = savedManual.mode || 'manual';
+      setLocationMode(mode);
+      syncLocationControl(savedManual.city, savedManual.lat, savedManual.lon, savedManual.label || savedManual.city);
+      setLocationSource(
+        mode === 'search'
+          ? tx.citySearched
+          : mode === 'travel'
+          ? `${tx.travelPinned}: ${savedManual.label || savedManual.city}`
+          : tx.citySelected
+      );
       fetchWeatherByCoords(savedManual.lat, savedManual.lon, savedManual.label || savedManual.city);
     } else {
       detectGpsLocation();
     }
-  }, [detectGpsLocation, fetchWeatherByCoords, tx.citySelected]);
+  }, [detectGpsLocation, fetchWeatherByCoords, syncLocationControl, tx.citySearched, tx.citySelected, tx.travelPinned]);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -1375,7 +1486,7 @@ export default function HomePage() {
 
     const newSaved = {
       id: Date.now(),
-      createdAt: new Date().toLocaleDateString(),
+      createdAt: new Date().toISOString(),
       city: activeWeather.locationName,
       temp: activeWeather.temp,
       condition: activeWeather.conditionText,
@@ -1632,6 +1743,60 @@ export default function HomePage() {
     </div>
   );
 
+  const renderToasts = () => {
+    if (!error && !message) return null;
+    return (
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-[calc(100vw-2rem)] max-w-sm pointer-events-none">
+        {error && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className={`pointer-events-auto flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg animate-outfit-in ${
+              isDark
+                ? 'bg-zinc-900/95 border-red-500/40 text-red-300'
+                : 'bg-white/95 border-red-300 text-red-800'
+            }`}
+          >
+            <span className="leading-snug">{error}</span>
+            <button
+              type="button"
+              onClick={() => setError('')}
+              aria-label={tx.closeNotification}
+              className={`shrink-0 rounded-lg px-2 py-0.5 text-xs font-semibold transition cursor-pointer ${
+                isDark ? 'hover:bg-red-500/20 text-red-300' : 'hover:bg-red-100 text-red-800'
+              }`}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+        {message && (
+          <div
+            role="status"
+            aria-live="polite"
+            className={`pointer-events-auto flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg animate-outfit-in ${
+              isDark
+                ? 'bg-zinc-900/95 border-emerald-500/40 text-emerald-300'
+                : 'bg-white/95 border-emerald-300 text-emerald-800'
+            }`}
+          >
+            <span className="leading-snug">{message}</span>
+            <button
+              type="button"
+              onClick={() => setMessage('')}
+              aria-label={tx.closeNotification}
+              className={`shrink-0 rounded-lg px-2 py-0.5 text-xs font-semibold transition cursor-pointer ${
+                isDark ? 'hover:bg-emerald-500/20 text-emerald-300' : 'hover:bg-emerald-100 text-emerald-800'
+              }`}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <main className={`auth-shell min-h-screen ${t.page} flex items-center justify-center transition-colors duration-300`}>
@@ -1681,14 +1846,44 @@ export default function HomePage() {
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-500">
-                {error}
+              <div
+                role="alert"
+                className={`rounded-xl border p-3 text-xs flex items-center justify-between gap-2 ${
+                  isDark
+                    ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                    : 'bg-red-50 border-red-200 text-red-700'
+                }`}
+              >
+                <span>{error}</span>
+                <button
+                  type="button"
+                  onClick={() => setError('')}
+                  aria-label={tx.closeNotification}
+                  className="shrink-0 px-1.5 py-0.5 rounded hover:bg-red-500/20 cursor-pointer"
+                >
+                  ✕
+                </button>
               </div>
             )}
 
             {message && (
-              <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-500">
-                {message}
+              <div
+                role="status"
+                className={`rounded-xl border p-3 text-xs flex items-center justify-between gap-2 ${
+                  isDark
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                }`}
+              >
+                <span>{message}</span>
+                <button
+                  type="button"
+                  onClick={() => setMessage('')}
+                  aria-label={tx.closeNotification}
+                  className="shrink-0 px-1.5 py-0.5 rounded hover:bg-emerald-500/20 cursor-pointer"
+                >
+                  ✕
+                </button>
               </div>
             )}
 
@@ -1785,17 +1980,7 @@ export default function HomePage() {
           </button>
         </div>
 
-        {error && (
-          <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3.5 text-sm text-red-500 animate-outfit-in">
-            {error}
-          </div>
-        )}
-
-        {message && (
-          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 text-sm text-emerald-500 animate-outfit-in">
-            {message}
-          </div>
-        )}
+        {renderToasts()}
 
         {activeTab === 'travel' ? (
           <section className={`app-panel rounded-2xl ${t.hero} border p-6 space-y-6 animate-outfit-in`}>
@@ -1968,7 +2153,8 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <span className={`text-[11px] uppercase tracking-wider ${t.muted}`}>
-                  {tx.liveWeatherTitle} • {locationSource} ({locationMode.toUpperCase()})
+                  {tx.liveWeatherTitle} • {locationSource} (
+                  {tx.locationModeLabels?.[locationMode] || tx.locationModeLabels?.manual})
                 </span>
                 <h2 className="text-xl font-bold mt-1">
                   {loadingWeather && demoPresetId === 'live'
@@ -2000,6 +2186,9 @@ export default function HomePage() {
                   onChange={(e) => handleCitySelect(e.target.value)}
                   className={`rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
                 >
+                  {customCityOption && (
+                    <option value={customCityOption.value}>{customCityOption.label}</option>
+                  )}
                   {WORLD_CITIES.map((city) => (
                     <option key={`${city.name}-${city.code}`} value={city.name}>
                       {city.nameByLang ? city.nameByLang[lang] || city.name : city.name} ({city.code})
@@ -2227,7 +2416,8 @@ export default function HomePage() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className={`text-xs ${t.subtext} font-medium`}>
-                      {saved.city} • {saved.temp}°C ({saved.condition}) — {saved.createdAt}
+                      {saved.city} • {saved.temp}°C ({saved.condition}) —{' '}
+                      {formatSavedOutfitDate(saved.createdAt, lang)}
                     </p>
                     <div className="flex items-center gap-2">
                       {saved.outfitData && (
