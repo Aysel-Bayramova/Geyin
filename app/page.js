@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+
+const getSavedOutfitsKey = (userId) => `geyin_saved_${userId}`;
+const getTravelCitiesKey = (userId) => `geyin_travel_cities_${userId}`;
+const getManualLocationKey = (userId) => `geyin_manual_location_${userId}`;
 
 const CATEGORIES = [
   {
@@ -852,6 +856,11 @@ export default function HomePage() {
   const [loadingWeekly, setLoadingWeekly] = useState(false);
   const [savingTravelCity, setSavingTravelCity] = useState(false);
 
+  const userIdRef = useRef(null);
+  useEffect(() => {
+    userIdRef.current = user?.id ?? null;
+  }, [user]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -862,14 +871,6 @@ export default function HomePage() {
       const savedLang = localStorage.getItem('geyin_lang');
       if (savedLang === 'az' || savedLang === 'en' || savedLang === 'ru') {
         setLang(savedLang);
-      }
-      const savedTravelList = localStorage.getItem('geyin_travel_cities');
-      if (savedTravelList) {
-        const parsed = JSON.parse(savedTravelList);
-        setTravelCities(parsed);
-        if (parsed.length > 0) {
-          setActiveTravelPlan(parsed[0]);
-        }
       }
     } catch {
       // ignore
@@ -1076,9 +1077,11 @@ export default function HomePage() {
 
   const persistManualLocation = useCallback((cityValue, lat, lon, label) => {
     setLocationMode('manual');
+    const uid = userIdRef.current;
+    if (!uid) return;
     try {
       localStorage.setItem(
-        'geyin_manual_location',
+        getManualLocationKey(uid),
         JSON.stringify({ city: cityValue, lat, lon, label })
       );
     } catch {
@@ -1089,10 +1092,13 @@ export default function HomePage() {
   const detectGpsLocation = useCallback(() => {
     setDemoPresetId('live');
     setLocationMode('gps');
-    try {
-      localStorage.removeItem('geyin_manual_location');
-    } catch {
-      // ignore
+    const uid = userIdRef.current;
+    if (uid) {
+      try {
+        localStorage.removeItem(getManualLocationKey(uid));
+      } catch {
+        // ignore
+      }
     }
 
     if (typeof window === 'undefined' || !navigator.geolocation) {
@@ -1211,10 +1217,12 @@ export default function HomePage() {
       const nextList = [entry, ...travelCities.filter((c) => c.label !== label)].slice(0, 10);
       setTravelCities(nextList);
       setActiveTravelPlan(entry);
-      try {
-        localStorage.setItem('geyin_travel_cities', JSON.stringify(nextList));
-      } catch {
-        // ignore
+      if (user?.id) {
+        try {
+          localStorage.setItem(getTravelCitiesKey(user.id), JSON.stringify(nextList));
+        } catch {
+          // ignore
+        }
       }
 
       setDemoPresetId('live');
@@ -1245,48 +1253,97 @@ export default function HomePage() {
     setTravelCities(nextList);
     if (activeTravelPlan?.id === id) {
       setActiveTravelPlan(nextList[0] || null);
+      if (!nextList[0]) {
+        setWeeklyForecast([]);
+      }
     }
-    try {
-      localStorage.setItem('geyin_travel_cities', JSON.stringify(nextList));
-    } catch {
-      // ignore
+    if (user?.id) {
+      try {
+        localStorage.setItem(getTravelCitiesKey(user.id), JSON.stringify(nextList));
+      } catch {
+        // ignore
+      }
     }
   };
 
-  const initLocationOnLogin = useCallback(() => {
-    let savedManual = null;
+  const loadUserScopedState = useCallback((userId) => {
+    if (!userId) return;
     try {
-      const raw = localStorage.getItem('geyin_manual_location');
-      if (raw) savedManual = JSON.parse(raw);
+      const rawSaved = localStorage.getItem(getSavedOutfitsKey(userId));
+      const parsedSaved = rawSaved ? JSON.parse(rawSaved) : [];
+      setSavedOutfits(Array.isArray(parsedSaved) ? parsedSaved : []);
     } catch {
-      // ignore
+      setSavedOutfits([]);
     }
+    try {
+      const rawTravel = localStorage.getItem(getTravelCitiesKey(userId));
+      const parsedTravel = rawTravel ? JSON.parse(rawTravel) : [];
+      if (Array.isArray(parsedTravel) && parsedTravel.length > 0) {
+        setTravelCities(parsedTravel);
+        setActiveTravelPlan(parsedTravel[0]);
+      } else {
+        setTravelCities([]);
+        setActiveTravelPlan(null);
+        setWeeklyForecast([]);
+      }
+    } catch {
+      setTravelCities([]);
+      setActiveTravelPlan(null);
+      setWeeklyForecast([]);
+    }
+  }, []);
 
-    if (savedManual && typeof savedManual.lat === 'number' && typeof savedManual.lon === 'number') {
-      setLocationMode('manual');
-      if (savedManual.city) setSelectedCity(savedManual.city);
-      setLocationSource(tx.citySelected);
-      fetchWeatherByCoords(savedManual.lat, savedManual.lon, savedManual.label || savedManual.city);
-    } else {
-      detectGpsLocation();
-    }
-  }, [detectGpsLocation, fetchWeatherByCoords, tx.citySelected]);
+  const resetUserScopedState = useCallback(() => {
+    setItems([]);
+    setSavedOutfits([]);
+    setRecommendedOutfit(null);
+    setLockedSlots({});
+    setTravelCities([]);
+    setActiveTravelPlan(null);
+    setWeeklyForecast([]);
+    setOutfitStyleFilter('all');
+    setSelectedCategoryFilter('Hamısı');
+    setDemoPresetId('live');
+    setTravelCityInput('');
+    setTravelNoteInput('');
+  }, []);
+
+  const initLocationOnLogin = useCallback(
+    (userId) => {
+      let savedManual = null;
+      if (userId) {
+        try {
+          const raw = localStorage.getItem(getManualLocationKey(userId));
+          if (raw) savedManual = JSON.parse(raw);
+        } catch {
+          // ignore
+        }
+      }
+
+      if (savedManual && typeof savedManual.lat === 'number' && typeof savedManual.lon === 'number') {
+        setLocationMode('manual');
+        if (savedManual.city) setSelectedCity(savedManual.city);
+        setLocationSource(tx.citySelected);
+        fetchWeatherByCoords(savedManual.lat, savedManual.lon, savedManual.label || savedManual.city);
+      } else {
+        detectGpsLocation();
+      }
+    },
+    [detectGpsLocation, fetchWeatherByCoords, tx.citySelected]
+  );
 
   useEffect(() => {
+    let loadedUserId = null;
+
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       const currentUser = data?.session?.user ?? null;
       setUser(currentUser);
       setLoading(false);
       if (currentUser) {
+        userIdRef.current = currentUser.id;
         fetchItems(currentUser.id);
-        initLocationOnLogin();
-        try {
-          const raw = localStorage.getItem(`geyin_saved_${currentUser.id}`);
-          if (raw) setSavedOutfits(JSON.parse(raw));
-        } catch {
-          // ignore
-        }
+        initLocationOnLogin(currentUser.id);
       }
     };
 
@@ -1297,17 +1354,24 @@ export default function HomePage() {
       setUser(currentUser);
       setLoading(false);
       if (currentUser) {
+        userIdRef.current = currentUser.id;
+        if (loadedUserId !== currentUser.id) {
+          loadedUserId = currentUser.id;
+          loadUserScopedState(currentUser.id);
+        }
         fetchItems(currentUser.id);
-        initLocationOnLogin();
+        initLocationOnLogin(currentUser.id);
       } else {
-        setItems([]);
+        userIdRef.current = null;
+        loadedUserId = null;
+        resetUserScopedState();
       }
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [initLocationOnLogin]);
+  }, [initLocationOnLogin, loadUserScopedState, resetUserScopedState]);
 
   useEffect(() => {
     if (activeWeather && items.length > 0) {
@@ -1393,7 +1457,7 @@ export default function HomePage() {
     const updatedList = [newSaved, ...savedOutfits].slice(0, 12);
     setSavedOutfits(updatedList);
     try {
-      localStorage.setItem(`geyin_saved_${user.id}`, JSON.stringify(updatedList));
+      localStorage.setItem(getSavedOutfitsKey(user.id), JSON.stringify(updatedList));
     } catch {
       // ignore
     }
@@ -1412,7 +1476,7 @@ export default function HomePage() {
     const updatedList = savedOutfits.filter((o) => o.id !== savedId);
     setSavedOutfits(updatedList);
     try {
-      localStorage.setItem(`geyin_saved_${user.id}`, JSON.stringify(updatedList));
+      localStorage.setItem(getSavedOutfitsKey(user.id), JSON.stringify(updatedList));
     } catch {
       // ignore
     }
@@ -1461,6 +1525,8 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    userIdRef.current = null;
+    resetUserScopedState();
     setMessage('');
     setError('');
   };
