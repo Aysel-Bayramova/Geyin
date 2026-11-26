@@ -157,20 +157,24 @@ const UI_TEXT = {
     saveOutfit: 'Yadda saxla',
     savedToast: 'Kombin "Sevimli kombinlərim" bölməsinə əlavə olundu!',
     loadedToast: 'Sevimli kombin əsas sahəyə yükləndi.',
-    travelTitle: 'Səyahət və 1 həftəlik valiz tövsiyəsi',
+    travelTitle: 'Səyahət və valiz tövsiyəsi',
     travelSubtitle:
-      'Gedəcəyin şəhəri və neçə günlük səyahət etdiyini yaz — 1 həftəlik hava proqnozuna əsasən valizə qoyulacaq paltarları seçək.',
+      'Gedəcəyin şəhəri, başlama tarixini və neçə günlük (1–14 gün) səyahət etdiyini seç — 16 günlük hava proqnozuna əsasən valizə qoyulacaq paltarları seçək.',
     travelInputPlaceholder: 'Gedəcəyin şəhəri yaz (məs: London, Dubai, Rome)...',
-    travelDaysLabel: 'Səyahət müddəti (gün)',
+    travelStartDateLabel: 'Başlama tarixi',
+    travelDaysLabel: 'Səyahət müddəti (1–14 gün)',
     travelNotePlaceholder: 'Əlavə qeyd (məs: iş səfəri, gəzinti)',
     travelSaveBtn: 'Şəhəri qeyd et və valizi hazırla',
     travelSavedListTitle: 'Qeyd etdiyin səyahət şəhərləri',
     useCityBtn: 'Bu şəhəri seç',
     removeCityBtn: 'Çıxar',
     travelEmptyMsg: 'Hələ səyahət şəhəri qeyd etməmisən. Yuxarıdan gedəcəyin şəhəri əlavə et.',
-    weeklyForecastTitle: '1 həftəlik (7 günlük) hava proqnozu',
+    weeklyForecastTitle: 'Səyahət hava proqnozu',
+    forecastDaysIncluded: 'Nəzərə alınan günlər',
+    forecastPartialNote: 'Qeyd: Open-Meteo maksimum 16 günlük proqnoz təqdim edir; əhatə olunmayan sonrakı günlər proqnoza daxil deyil.',
+    forecastOutOfRange: 'Seçilmiş tarixlər 16 günlük proqnoz pəncərəsindən kənarda qalır.',
     suitcaseTitle: 'Valizə qoyulacaq geyimlər (Qarderobundan)',
-    suitcaseSummary: 'günlük səyahət • 7 günlük proqnoza uyğun seçildi',
+    suitcaseSummary: 'günlük səyahət • proqnoz əsasında seçildi',
     rainyWeekNote: 'Həftə ərzində yağış ehtimalı yüksəkdir — suya davamlı geyimlərə üstünlük verildi.',
     coldWeekNote: 'Həftə ərzində sərin/soyuq günlər var — üst örtük və isti parçalar əlavə olundu.',
     warmWeekNote: 'Həftə ərzində mülayim/isti hava gözlənilir — yüngül və nəfəs alan parçalar seçildi.',
@@ -269,20 +273,24 @@ const UI_TEXT = {
     saveOutfit: 'Save outfit',
     savedToast: 'Outfit added to Saved Outfits!',
     loadedToast: 'Saved outfit loaded into main view.',
-    travelTitle: 'Travel & 1-Week Suitcase Guide',
+    travelTitle: 'Travel & Suitcase Guide',
     travelSubtitle:
-      'Enter your destination city and how many days you are traveling — we pick suitcase items from your wardrobe based on the 7-day forecast.',
+      'Enter your destination city, start date, and trip length (1–14 days) — we pick suitcase items from your wardrobe using up to 16 days of forecast.',
     travelInputPlaceholder: 'Enter destination city (e.g. London, Dubai, Rome)...',
-    travelDaysLabel: 'Trip length (days)',
+    travelStartDateLabel: 'Start date',
+    travelDaysLabel: 'Trip length (1–14 days)',
     travelNotePlaceholder: 'Note (e.g. work trip, sightseeing)',
     travelSaveBtn: 'Save city & build suitcase',
     travelSavedListTitle: 'Saved travel cities',
     useCityBtn: 'Use city',
     removeCityBtn: 'Remove',
     travelEmptyMsg: 'No travel cities saved yet. Add a destination city above.',
-    weeklyForecastTitle: '1-Week (7-Day) Forecast',
+    weeklyForecastTitle: 'Trip Weather Forecast',
+    forecastDaysIncluded: 'Forecast days included',
+    forecastPartialNote: 'Note: Open-Meteo provides forecasts up to 16 days ahead; days beyond that window are not covered.',
+    forecastOutOfRange: 'Selected dates are outside the 16-day forecast window.',
     suitcaseTitle: 'Suggested Suitcase Items (From Your Wardrobe)',
-    suitcaseSummary: 'day trip • tailored to 7-day forecast',
+    suitcaseSummary: 'day trip • tailored to trip forecast',
     rainyWeekNote: 'High chance of rain during the week — waterproof items were prioritized.',
     coldWeekNote: 'Cool/cold days expected — outerwear and warmer pieces were included.',
     warmWeekNote: 'Mild/warm days expected — lighter and breathable pieces were prioritized.',
@@ -380,20 +388,24 @@ const UI_TEXT = {
     saveOutfit: 'Сохранить',
     savedToast: 'Образ добавлен в «Избранные образы»!',
     loadedToast: 'Сохраненный образ загружен.',
-    travelTitle: 'Поездка и сбор чемодана на неделю',
+    travelTitle: 'Поездка и сбор чемодана',
     travelSubtitle:
-      'Укажите город и сколько дней продлится поездка — подберем вещи из гардероба по прогнозу на 7 дней.',
+      'Укажите город, дату начала и длительность поездки (1–14 дней) — подберем вещи из гардероба по прогнозу до 16 дней.',
     travelInputPlaceholder: 'Введите город (напр. Лондон, Дубай, Рим)...',
-    travelDaysLabel: 'Длительность (дней)',
+    travelStartDateLabel: 'Дата начала',
+    travelDaysLabel: 'Длительность (1–14 дн.)',
     travelNotePlaceholder: 'Заметка (напр. командировка, прогулки)',
     travelSaveBtn: 'Сохранить и собрать чемодан',
     travelSavedListTitle: 'Сохраненные города поездок',
     useCityBtn: 'Выбрать',
     removeCityBtn: 'Удалить',
     travelEmptyMsg: 'Пока нет сохраненных городов поездки. Добавьте город выше.',
-    weeklyForecastTitle: 'Прогноз погоды на 1 неделю (7 дней)',
+    weeklyForecastTitle: 'Прогноз погоды на поездку',
+    forecastDaysIncluded: 'Учтенные дни прогноза',
+    forecastPartialNote: 'Примечание: Open-Meteo предоставляет прогноз максимум на 16 дней; более поздние дни не охвачены.',
+    forecastOutOfRange: 'Выбранные даты выходят за пределы 16-дневного прогноза.',
     suitcaseTitle: 'Рекомендуемые вещи в чемодан (из гардероба)',
-    suitcaseSummary: 'дн. поездка • по прогнозу на 7 дней',
+    suitcaseSummary: 'дн. поездка • по прогнозу поездки',
     rainyWeekNote: 'На неделе ожидаются осадки — учтены влагозащитные вещи.',
     coldWeekNote: 'Ожидаются прохладные/холодные дни — добавлена верхняя одежда.',
     warmWeekNote: 'Ожидается теплая погода — выбраны более легкие вещи.',
@@ -702,6 +714,28 @@ function buildSmartOutfit(
   return nextOutfit;
 }
 
+const MAX_OPEN_METEO_DAYS = 16;
+const MAX_TRAVEL_DAYS = 14;
+
+function getLocalIsoDate(offsetDays = 0) {
+  const now = new Date();
+  const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + offsetDays));
+  return d.toISOString().slice(0, 10);
+}
+
+function addIsoDays(isoDate, deltaDays) {
+  if (!isoDate || typeof isoDate !== 'string') return getLocalIsoDate(deltaDays);
+  const [y, m, d] = isoDate.split('-').map(Number);
+  if (!y || !m || !d) return getLocalIsoDate(deltaDays);
+  return new Date(Date.UTC(y, m - 1, d + deltaDays)).toISOString().slice(0, 10);
+}
+
+function clampTravelDays(val) {
+  const parsed = Number.parseInt(val, 10);
+  if (Number.isNaN(parsed)) return 1;
+  return Math.max(1, Math.min(MAX_TRAVEL_DAYS, parsed));
+}
+
 function buildSuitcasePlan(items, weeklyDays, tripDays, lang = 'az') {
   if (!items || items.length === 0) {
     return { suggestedItems: [], note: '' };
@@ -771,17 +805,17 @@ function buildSuitcasePlan(items, weeklyDays, tripDays, lang = 'az') {
 
   let note = '';
   if (lang === 'en') {
-    if (isRainyWeek) note = 'High chance of rain during the week — waterproof items were prioritized.';
+    if (isRainyWeek) note = 'High chance of rain during the trip — waterproof items were prioritized.';
     else if (isColdWeek) note = 'Cool/cold days expected — outerwear and warmer pieces were included.';
     else note = 'Mild/warm days expected — lighter and breathable pieces were prioritized.';
   } else if (lang === 'ru') {
-    if (isRainyWeek) note = 'На неделе ожидаются осадки — учтены влагозащитные вещи.';
+    if (isRainyWeek) note = 'Во время поездки ожидаются осадки — учтены влагозащитные вещи.';
     else if (isColdWeek) note = 'Ожидаются прохладные/холодные дни — добавлена верхняя одежда.';
     else note = 'Ожидается теплая погода — выбраны более легкие вещи.';
   } else {
-    if (isRainyWeek) note = 'Həftə ərzində yağış ehtimalı yüksəkdir — suya davamlı geyimlərə üstünlük verildi.';
-    else if (isColdWeek) note = 'Həftə ərzində sərin/soyuq günlər var — üst örtük və isti parçalar əlavə olundu.';
-    else note = 'Həftə ərzində mülayim/isti hava gözlənilir — yüngül və nəfəs alan parçalar seçildi.';
+    if (isRainyWeek) note = 'Səyahət ərzində yağış ehtimalı yüksəkdir — suya davamlı geyimlərə üstünlük verildi.';
+    else if (isColdWeek) note = 'Səyahət ərzində sərin/soyuq günlər var — üst örtük və isti parçalar əlavə olundu.';
+    else note = 'Səyahət ərzində mülayim/isti hava gözlənilir — yüngül və nəfəs alan parçalar seçildi.';
   }
 
   return { suggestedItems, note };
@@ -842,8 +876,9 @@ export default function HomePage() {
   const [lockedSlots, setLockedSlots] = useState({});
   const [savedOutfits, setSavedOutfits] = useState([]);
 
-  // Travel / 1-week forecast & suitcase state
+  // Travel / forecast & suitcase state
   const [travelCityInput, setTravelCityInput] = useState('');
+  const [travelStartDateInput, setTravelStartDateInput] = useState(() => getLocalIsoDate(0));
   const [travelDaysInput, setTravelDaysInput] = useState(4);
   const [travelNoteInput, setTravelNoteInput] = useState('');
   const [travelCities, setTravelCities] = useState([]);
@@ -883,21 +918,33 @@ export default function HomePage() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  const fetchWeeklyForecast = useCallback(async (lat, lon) => {
+  const fetchWeeklyForecast = useCallback(async (lat, lon, startDate, daysCount) => {
     setLoadingWeekly(true);
     try {
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=7&timezone=auto`
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=${MAX_OPEN_METEO_DAYS}&timezone=auto`
       );
+      if (!res.ok) {
+        throw new Error(`Open-Meteo HTTP ${res.status}`);
+      }
       const data = await res.json();
       if (data?.daily?.time) {
-        const days = data.daily.time.map((dateStr, idx) => ({
+        const effectiveStart = startDate || getLocalIsoDate(0);
+        const tripDays = clampTravelDays(daysCount);
+        const effectiveEnd = addIsoDays(effectiveStart, tripDays - 1);
+
+        const allDays = data.daily.time.map((dateStr, idx) => ({
           date: dateStr,
           maxTemp: Math.round(data.daily.temperature_2m_max?.[idx] ?? 0),
           minTemp: Math.round(data.daily.temperature_2m_min?.[idx] ?? 0),
           rainProb: data.daily.precipitation_probability_max?.[idx] ?? 0,
         }));
-        setWeeklyForecast(days);
+        const filtered = allDays.filter(
+          (day) => day.date >= effectiveStart && day.date <= effectiveEnd
+        );
+        setWeeklyForecast(filtered);
+      } else {
+        setWeeklyForecast([]);
       }
     } catch {
       setWeeklyForecast([]);
@@ -908,7 +955,12 @@ export default function HomePage() {
 
   useEffect(() => {
     if (activeTravelPlan?.lat && activeTravelPlan?.lon) {
-      fetchWeeklyForecast(activeTravelPlan.lat, activeTravelPlan.lon);
+      fetchWeeklyForecast(
+        activeTravelPlan.lat,
+        activeTravelPlan.lon,
+        activeTravelPlan.startDate,
+        activeTravelPlan.days
+      );
     }
   }, [activeTravelPlan, fetchWeeklyForecast]);
 
@@ -1195,13 +1247,15 @@ export default function HomePage() {
       const label = place.country_code
         ? `${place.name} (${place.country_code})`
         : place.name;
-      const daysVal = Math.max(1, Math.min(14, Number(travelDaysInput) || 3));
+      const daysVal = clampTravelDays(travelDaysInput);
+      const startDateVal = travelStartDateInput || getLocalIsoDate(0);
 
       const entry = {
         id: Date.now(),
         name: place.name,
         code: place.country_code || '',
         label,
+        startDate: startDateVal,
         days: daysVal,
         note: travelNoteInput.trim(),
         lat: place.latitude,
@@ -1221,7 +1275,7 @@ export default function HomePage() {
       persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
       setLocationSource(`${tx.travelPinned}: ${entry.label}`);
       await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
-      await fetchWeeklyForecast(entry.lat, entry.lon);
+      await fetchWeeklyForecast(entry.lat, entry.lon, entry.startDate, entry.days);
       setTravelCityInput('');
       setTravelNoteInput('');
     } catch {
@@ -1237,7 +1291,7 @@ export default function HomePage() {
     persistManualLocation(entry.name, entry.lat, entry.lon, entry.label);
     setLocationSource(`${tx.travelPinned}: ${entry.label}`);
     await fetchWeatherByCoords(entry.lat, entry.lon, entry.label);
-    await fetchWeeklyForecast(entry.lat, entry.lon);
+    await fetchWeeklyForecast(entry.lat, entry.lon, entry.startDate, entry.days);
   };
 
   const handleRemoveTravelCity = (id) => {
@@ -1738,6 +1792,14 @@ export default function HomePage() {
       ]
     : [];
 
+  const activeTravelDays = clampTravelDays(activeTravelPlan?.days || travelDaysInput);
+  const activeTravelStart = activeTravelPlan?.startDate || getLocalIsoDate(0);
+  const activeTravelEnd = addIsoDays(activeTravelStart, activeTravelDays - 1);
+  const todayIso = getLocalIsoDate(0);
+  const maxForecastIso = getLocalIsoDate(MAX_OPEN_METEO_DAYS - 1);
+  const coveredStartDate = weeklyForecast[0]?.date;
+  const coveredEndDate = weeklyForecast[weeklyForecast.length - 1]?.date;
+
   return (
     <main className={`app-shell min-h-screen ${t.page} p-4 md:p-8 transition-colors duration-300`} data-theme={isDark ? 'dark' : 'light'}>
       <div className="app-content max-w-6xl mx-auto space-y-6">
@@ -1804,27 +1866,40 @@ export default function HomePage() {
               <p className={`text-xs ${t.muted} mt-1`}>{tx.travelSubtitle}</p>
             </div>
 
-            <form onSubmit={handleAddTravelCity} className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <input
-                type="text"
-                required
-                value={travelCityInput}
-                onChange={(e) => setTravelCityInput(e.target.value)}
-                placeholder={tx.travelInputPlaceholder}
-                className={`md:col-span-2 rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
-              />
+            <form onSubmit={handleAddTravelCity} className="grid grid-cols-1 md:grid-cols-6 gap-3">
+              <div className="md:col-span-2 flex items-end">
+                <input
+                  type="text"
+                  required
+                  value={travelCityInput}
+                  onChange={(e) => setTravelCityInput(e.target.value)}
+                  placeholder={tx.travelInputPlaceholder}
+                  className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
+                />
+              </div>
+              <div>
+                <label className={`block text-[10px] ${t.muted} mb-1`}>{tx.travelStartDateLabel}</label>
+                <input
+                  type="date"
+                  min={todayIso}
+                  max={maxForecastIso}
+                  value={travelStartDateInput}
+                  onChange={(e) => setTravelStartDateInput(e.target.value || getLocalIsoDate(0))}
+                  className={`w-full rounded-xl ${t.surface} border px-3 py-2 text-xs focus:outline-none`}
+                />
+              </div>
               <div>
                 <label className={`block text-[10px] ${t.muted} mb-1`}>{tx.travelDaysLabel}</label>
                 <input
                   type="number"
                   min={1}
-                  max={14}
+                  max={MAX_TRAVEL_DAYS}
                   value={travelDaysInput}
-                  onChange={(e) => setTravelDaysInput(e.target.value)}
+                  onChange={(e) => setTravelDaysInput(clampTravelDays(e.target.value))}
                   className={`w-full rounded-xl ${t.surface} border px-3.5 py-2 text-xs focus:outline-none`}
                 />
               </div>
-              <div className="flex items-end">
+              <div className="md:col-span-2 flex items-end">
                 <button
                   type="submit"
                   disabled={savingTravelCity}
@@ -1838,18 +1913,26 @@ export default function HomePage() {
                 value={travelNoteInput}
                 onChange={(e) => setTravelNoteInput(e.target.value)}
                 placeholder={tx.travelNotePlaceholder}
-                className={`md:col-span-4 rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
+                className={`md:col-span-6 rounded-xl ${t.surface} border px-3.5 py-2.5 text-xs focus:outline-none`}
               />
             </form>
 
-            {/* 1-Week Forecast */}
+            {/* Trip Forecast */}
             {activeTravelPlan && (
               <div className={`space-y-3 pt-4 border-t ${t.border}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold">
-                    {tx.weeklyForecastTitle} — {activeTravelPlan.label} ({activeTravelPlan.days || 3}{' '}
-                    {tx.daysUnit})
-                  </h3>
+                  <div>
+                    <h3 className="text-sm font-semibold">
+                      {tx.weeklyForecastTitle} — {activeTravelPlan.label} ({activeTravelDays}{' '}
+                      {tx.daysUnit})
+                    </h3>
+                    <p className={`text-[11px] ${t.muted} mt-0.5`}>
+                      {activeTravelStart} – {activeTravelEnd}
+                      {coveredStartDate && coveredEndDate
+                        ? ` • ${tx.forecastDaysIncluded}: ${coveredStartDate} – ${coveredEndDate} (${weeklyForecast.length}/${activeTravelDays} ${tx.daysUnit})`
+                        : ''}
+                    </p>
+                  </div>
                   {activeTravelPlan.note && (
                     <span className={`text-xs ${t.muted}`}>{activeTravelPlan.note}</span>
                   )}
@@ -1857,21 +1940,28 @@ export default function HomePage() {
 
                 {loadingWeekly ? (
                   <p className={`text-xs ${t.muted}`}>{tx.checkingWeather}</p>
+                ) : weeklyForecast.length === 0 ? (
+                  <p className={`text-xs ${t.muted}`}>{tx.forecastOutOfRange}</p>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
-                    {weeklyForecast.map((day) => (
-                      <div
-                        key={day.date}
-                        className={`rounded-xl ${t.surface} border p-3 text-center space-y-1`}
-                      >
-                        <p className={`text-[11px] font-semibold ${t.subtext}`}>{day.date}</p>
-                        <p className="text-sm font-bold">
-                          {day.maxTemp}° / {day.minTemp}°
-                        </p>
-                        <p className="text-[11px] text-sky-400">💧 {day.rainProb}%</p>
-                      </div>
-                    ))}
-                  </div>
+                  <>
+                    {weeklyForecast.length < activeTravelDays && (
+                      <p className="text-xs text-amber-500">{tx.forecastPartialNote}</p>
+                    )}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
+                      {weeklyForecast.map((day) => (
+                        <div
+                          key={day.date}
+                          className={`rounded-xl ${t.surface} border p-3 text-center space-y-1`}
+                        >
+                          <p className={`text-[11px] font-semibold ${t.subtext}`}>{day.date}</p>
+                          <p className="text-sm font-bold">
+                            {day.maxTemp}° / {day.minTemp}°
+                          </p>
+                          <p className="text-[11px] text-sky-400">💧 {day.rainProb}%</p>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -1882,7 +1972,10 @@ export default function HomePage() {
                 <div>
                   <h3 className="text-sm font-semibold">{tx.suitcaseTitle}</h3>
                   <p className={`text-xs ${t.muted} mt-0.5`}>
-                    {activeTravelPlan.days || 3} {tx.suitcaseSummary}
+                    {activeTravelDays} {tx.suitcaseSummary}
+                    {coveredStartDate && coveredEndDate
+                      ? ` (${coveredStartDate} – ${coveredEndDate}, ${weeklyForecast.length}/${activeTravelDays} ${tx.daysUnit})`
+                      : ''}
                   </p>
                   {suitcasePlan.note && (
                     <p className="text-xs text-emerald-400 mt-1">{suitcasePlan.note}</p>
@@ -1936,7 +2029,7 @@ export default function HomePage() {
                     >
                       <div>
                         <p className="text-xs font-semibold">
-                          {c.label} • {c.days || 3} {tx.daysUnit}
+                          {c.label} • {c.startDate ? `${c.startDate} • ` : ''}{c.days || 3} {tx.daysUnit}
                         </p>
                         {c.note && <p className={`text-[11px] ${t.muted} mt-0.5`}>{c.note}</p>}
                       </div>
