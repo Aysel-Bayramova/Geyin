@@ -1,7 +1,31 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
+
+const WARDROBE_KEY = 'geyin_wardrobe_items';
+const SAVED_KEY = 'geyin_saved_outfits';
+
+// Shrinks the photo so it fits in localStorage (~5MB limit).
+function fileToCompressedDataUrl(file, maxSize = 640, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Invalid image'));
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 const CATEGORIES = [
   {
@@ -788,9 +812,7 @@ function buildSuitcasePlan(items, weeklyDays, tripDays, lang = 'az') {
 }
 
 export default function HomePage() {
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isRegister, setIsRegister] = useState(false);
 
   // Active tab: 'today' | 'travel'
   const [activeTab, setActiveTab] = useState('today');
@@ -803,16 +825,11 @@ export default function HomePage() {
   const [themeMode, setThemeMode] = useState('auto');
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
 
-  // Auth state
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   // Wardrobe state
   const [items, setItems] = useState([]);
-  const [loadingItems, setLoadingItems] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('Hamısı');
 
@@ -1273,40 +1290,16 @@ export default function HomePage() {
   }, [detectGpsLocation, fetchWeatherByCoords, tx.citySelected]);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      const currentUser = data?.session?.user ?? null;
-      setUser(currentUser);
-      setLoading(false);
-      if (currentUser) {
-        fetchItems(currentUser.id);
-        initLocationOnLogin();
-        try {
-          const raw = localStorage.getItem(`geyin_saved_${currentUser.id}`);
-          if (raw) setSavedOutfits(JSON.parse(raw));
-        } catch {
-          // ignore
-        }
-      }
-    };
-
-    checkSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      setLoading(false);
-      if (currentUser) {
-        fetchItems(currentUser.id);
-        initLocationOnLogin();
-      } else {
-        setItems([]);
-      }
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    try {
+      const rawItems = localStorage.getItem(WARDROBE_KEY);
+      if (rawItems) setItems(JSON.parse(rawItems));
+      const rawSaved = localStorage.getItem(SAVED_KEY);
+      if (rawSaved) setSavedOutfits(JSON.parse(rawSaved));
+    } catch {
+      // ignore
+    }
+    setLoading(false);
+    initLocationOnLogin();
   }, [initLocationOnLogin]);
 
   useEffect(() => {
@@ -1362,7 +1355,7 @@ export default function HomePage() {
   };
 
   const handleSaveCurrentOutfit = () => {
-    if (!user || !recommendedOutfit || !activeWeather) return;
+    if (!recommendedOutfit || !activeWeather) return;
     const pieces = [
       recommendedOutfit.top,
       recommendedOutfit.bottom,
@@ -1393,7 +1386,7 @@ export default function HomePage() {
     const updatedList = [newSaved, ...savedOutfits].slice(0, 12);
     setSavedOutfits(updatedList);
     try {
-      localStorage.setItem(`geyin_saved_${user.id}`, JSON.stringify(updatedList));
+      localStorage.setItem(SAVED_KEY, JSON.stringify(updatedList));
     } catch {
       // ignore
     }
@@ -1408,66 +1401,27 @@ export default function HomePage() {
   };
 
   const handleDeleteSavedOutfit = (savedId) => {
-    if (!user) return;
     const updatedList = savedOutfits.filter((o) => o.id !== savedId);
     setSavedOutfits(updatedList);
     try {
-      localStorage.setItem(`geyin_saved_${user.id}`, JSON.stringify(updatedList));
+      localStorage.setItem(SAVED_KEY, JSON.stringify(updatedList));
     } catch {
       // ignore
     }
   };
 
-  const fetchItems = async (userId) => {
-    setLoadingItems(true);
-    const { data, error: fetchError } = await supabase
-      .from('wardrobe_items')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (fetchError) {
-      setError(fetchError.message);
-    } else {
-      setItems(data || []);
-    }
-    setLoadingItems(false);
-  };
-
-  const handleAuth = async (e) => {
-    e.preventDefault();
-    setMessage('');
-    setError('');
-    setSubmitting(true);
-
+  const persistItems = (list) => {
     try {
-      if (isRegister) {
-        const { error: signUpError } = await supabase.auth.signUp({ email, password });
-        if (signUpError) throw signUpError;
-        setMessage('OK');
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (signInError) throw signInError;
-      }
-    } catch (err) {
-      setError(err.message || 'Error');
-    } finally {
-      setSubmitting(false);
+      localStorage.setItem(WARDROBE_KEY, JSON.stringify(list));
+      return true;
+    } catch {
+      setError(tx.storageFull || 'Storage is full. Delete some items.');
+      return false;
     }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setMessage('');
-    setError('');
   };
 
   const handleAddItem = async (e) => {
     e.preventDefault();
-    if (!user) return;
     setError('');
     setMessage('');
 
@@ -1478,41 +1432,26 @@ export default function HomePage() {
 
     setUploading(true);
     try {
-      const fileExt = imageFile.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('clothes')
-        .upload(fileName, imageFile, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrlData } = supabase.storage
-        .from('clothes')
-        .getPublicUrl(fileName);
-
-      const imageUrl = publicUrlData?.publicUrl;
+      const imageUrl = await fileToCompressedDataUrl(imageFile);
       const normalizedCategory =
         typeof category === 'string' ? category : category?.value || CATEGORIES[0].value;
 
-      const { error: insertError } = await supabase.from('wardrobe_items').insert([
-        {
-          user_id: user.id,
-          image_url: imageUrl,
-          category: normalizedCategory,
-          sub_category: subCategory.trim() || null,
-          color: color.trim() || null,
-          warmth_level: Number(warmthLevel),
-          waterproof,
-          windproof,
-          style,
-        },
-      ]);
+      const newItem = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        created_at: new Date().toISOString(),
+        image_url: imageUrl,
+        category: normalizedCategory,
+        sub_category: subCategory.trim() || null,
+        color: color.trim() || null,
+        warmth_level: Number(warmthLevel),
+        waterproof,
+        windproof,
+        style,
+      };
 
-      if (insertError) throw insertError;
+      const nextList = [newItem, ...items];
+      if (!persistItems(nextList)) return;
+      setItems(nextList);
 
       setMessage(tx.addedToast);
       setImageFile(null);
@@ -1525,8 +1464,6 @@ export default function HomePage() {
 
       const fileInput = document.getElementById('clothes-file-input');
       if (fileInput) fileInput.value = '';
-
-      await fetchItems(user.id);
     } catch (err) {
       setError(err.message || 'Error');
     } finally {
@@ -1534,28 +1471,10 @@ export default function HomePage() {
     }
   };
 
-  const handleDeleteItem = async (item) => {
-    if (!user) return;
+  const handleDeleteItem = (item) => {
     setError('');
-    try {
-      const urlParts = item.image_url.split('/clothes/');
-      if (urlParts.length > 1) {
-        const storagePath = urlParts[1].split('?')[0];
-        await supabase.storage.from('clothes').remove([storagePath]);
-      }
-
-      const { error: deleteError } = await supabase
-        .from('wardrobe_items')
-        .delete()
-        .eq('id', item.id)
-        .eq('user_id', user.id);
-
-      if (deleteError) throw deleteError;
-
-      setItems((prev) => prev.filter((i) => i.id !== item.id));
-    } catch (err) {
-      setError(err.message || 'Error');
-    }
+    const nextList = items.filter((i) => i.id !== item.id);
+    if (persistItems(nextList)) setItems(nextList);
   };
 
   const t = {
@@ -1640,85 +1559,6 @@ export default function HomePage() {
     );
   }
 
-  if (!user) {
-    return (
-      <main className={`auth-shell min-h-screen ${t.page} flex items-center justify-center p-6 transition-colors duration-300`}>
-        <div className={`auth-card w-full max-w-md rounded-2xl ${t.card} border p-6 space-y-6 animate-outfit-in`}>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Geyin</h1>
-              <p className={`text-sm ${t.muted} mt-1`}>
-                {isRegister ? tx.registerSubtitle : tx.loginSubtitle}
-              </p>
-            </div>
-            {renderTopControls()}
-          </div>
-
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div>
-              <label className={`block text-sm ${t.subtext} mb-1.5`}>{tx.email}</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
-              />
-            </div>
-
-            <div>
-              <label className={`block text-sm ${t.subtext} mb-1.5`}>{tx.password}</label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={tx.passwordHint}
-                className={`w-full rounded-xl ${t.surface} border px-3.5 py-2.5 text-sm focus:outline-none`}
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-500">
-                {error}
-              </div>
-            )}
-
-            {message && (
-              <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-500">
-                {message}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className={`w-full rounded-xl ${t.pillActive} disabled:opacity-50 font-semibold py-2.5 text-sm transition cursor-pointer active:scale-[0.98]`}
-            >
-              {submitting ? tx.pleaseWait : isRegister ? tx.signUp : tx.signIn}
-            </button>
-          </form>
-
-          <div className={`pt-2 border-t ${t.border} text-center`}>
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegister(!isRegister);
-                setError('');
-                setMessage('');
-              }}
-              className={`text-xs ${t.muted} transition cursor-pointer`}
-            >
-              {isRegister ? tx.haveAccount : tx.noAccount}
-            </button>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   const filteredItems =
     selectedCategoryFilter === 'Hamısı'
       ? items
@@ -1749,17 +1589,10 @@ export default function HomePage() {
             </span>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Geyin</h1>
-              <p className={`text-xs ${t.muted} mt-1`}>{user.email}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
             {renderTopControls()}
-            <button
-              onClick={handleLogout}
-              className={`rounded-xl ${t.card} border px-4 py-2 text-xs font-medium transition cursor-pointer active:scale-95`}
-            >
-              {tx.logout}
-            </button>
           </div>
         </header>
 
@@ -2434,9 +2267,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {loadingItems ? (
-            <p className={`text-sm ${t.muted}`}>{tx.loadingWardrobe}</p>
-          ) : filteredItems.length === 0 ? (
+          {filteredItems.length === 0 ? (
             <div className={`rounded-2xl ${t.card} border p-8 text-center text-sm ${t.muted}`}>
               {tx.emptyCategoryMsg}
             </div>
