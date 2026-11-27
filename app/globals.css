@@ -230,3 +230,106 @@ body {
 .animate-outfit-in {
   animation: fadeSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+/* ---------- Background decoration (pure CSS, no markup changes) ---------- */
+.app-shell,
+.auth-shell {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+}
+
+/* Layer 1: soft colour blobs + faint dot grid */
+.app-shell::before,
+.auth-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 14%, rgb(168 199 170 / 45%) 0, transparent 22rem),
+    radial-gradient(circle at 88% 22%, rgb(240 214 170 / 40%) 0, transparent 20rem),
+    radial-gradient(circle at 78% 92%, rgb(176 205 214 / 38%) 0, transparent 24rem),
+    radial-gradient(circle at 8% 88%, rgb(214 190 205 / 30%) 0, transparent 18rem),
+    radial-gradient(rgb(73 103 90 / 14%) 1.2px, transparent 1.4px) 0 0 / 26px 26px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, rgb(0 0 0 / 55%));
+  mask-image: linear-gradient(to bottom, #000 55%, rgb(0 0 0 / 55%));
+  animation: bgDrift 28s ease-in-out infinite alternate;
+}
+
+/* Layer 2: floating geometric shapes */
+.app-shell::after,
+.auth-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, transparent 0 56%, rgb(73 103 90 / 16%) 57% 60%, transparent 61%) 6% 62% / 15rem 15rem no-repeat,
+    radial-gradient(circle, rgb(231 190 120 / 22%) 0 100%, transparent 100%) 94% 8% / 7rem 7rem no-repeat,
+    radial-gradient(circle, transparent 0 56%, rgb(176 140 90 / 18%) 57% 60%, transparent 61%) 92% 74% / 11rem 11rem no-repeat,
+    linear-gradient(135deg, rgb(73 103 90 / 12%), transparent 70%) 3% 6% / 8rem 8rem no-repeat;
+  animation: bgFloat 22s ease-in-out infinite alternate;
+}
+
+/* Dark theme variants */
+.app-shell[data-theme="dark"]::before,
+.auth-shell.bg-zinc-950::before {
+  background:
+    radial-gradient(circle at 12% 14%, rgb(70 110 84 / 30%) 0, transparent 22rem),
+    radial-gradient(circle at 88% 22%, rgb(120 92 52 / 22%) 0, transparent 20rem),
+    radial-gradient(circle at 78% 92%, rgb(52 92 108 / 26%) 0, transparent 24rem),
+    radial-gradient(circle at 8% 88%, rgb(100 64 88 / 20%) 0, transparent 18rem),
+    radial-gradient(rgb(167 195 173 / 10%) 1.2px, transparent 1.4px) 0 0 / 26px 26px;
+}
+
+.app-shell[data-theme="dark"]::after,
+.auth-shell.bg-zinc-950::after {
+  background:
+    radial-gradient(circle, transparent 0 56%, rgb(167 195 173 / 16%) 57% 60%, transparent 61%) 6% 62% / 15rem 15rem no-repeat,
+    radial-gradient(circle, rgb(200 160 90 / 14%) 0 100%, transparent 100%) 94% 8% / 7rem 7rem no-repeat,
+    radial-gradient(circle, transparent 0 56%, rgb(200 160 90 / 14%) 57% 60%, transparent 61%) 92% 74% / 11rem 11rem no-repeat,
+    linear-gradient(135deg, rgb(167 195 173 / 10%), transparent 70%) 3% 6% / 8rem 8rem no-repeat;
+}
+
+/* Glass panels so the background shows through softly */
+.app-panel,
+.auth-card {
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  backdrop-filter: blur(14px) saturate(1.1);
+}
+
+.app-panel {
+  background: rgb(255 255 253 / 72%) !important;
+}
+
+.app-shell[data-theme="dark"] .app-panel {
+  background: rgb(25 30 26 / 78%) !important;
+}
+
+@keyframes bgDrift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-1.5%, 1.5%, 0) scale(1.04); }
+}
+
+@keyframes bgFloat {
+  from { transform: translate3d(0, 0, 0) rotate(0deg); }
+  to   { transform: translate3d(1.2%, -1.8%, 0) rotate(3deg); }
+}
+
+@media (max-width: 640px) {
+  .app-shell::after,
+  .auth-shell::after {
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell::before,
+  .app-shell::after,
+  .auth-shell::before,
+  .auth-shell::after {
+    animation: none;
+  }
+}
